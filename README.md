@@ -48,3 +48,31 @@ Join our community of developers creating universal apps.
 
 - [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
 - [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+
+_______________________________________________________________
+
+# Carib Trade Hub 🏝️
+
+Caribbean service marketplace app connecting service providers and customers across the Cayman Islands and Jamaica.
+
+## Features
+- Multi-island support (Cayman Islands & Jamaica)
+- AI-powered service discovery
+- Secure payments with local Caribbean payment methods
+- Real-time messaging
+- Geolocation-based provider search
+- Multi-currency support (KYD, JMD, USD)
+
+## Tech Stack
+- React Native with Expo
+- Redux Toolkit
+- React Navigation
+- Firebase Auth
+- Stripe Payments
+- React Native Maps
+
+## Getting Started
+```bash
+npm install
+expo start
+
