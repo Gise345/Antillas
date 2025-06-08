@@ -10,9 +10,10 @@ import {
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useLocationTheme } from '../../contexts/LocationContext';
+import { useLocationTheme } from '@/contexts/LocationContext';
 import { Typography, Spacing, BorderRadius, Shadows, CommonColors } from '@/constants/Colors';
 import { Ionicons } from '@expo/vector-icons';
+import LocationDropdown from '@/components/LocationDropdown';
 
 const { width } = Dimensions.get('window');
 
@@ -119,14 +120,7 @@ export default function HomeScreen() {
         end={{ x: 1, y: 1 }}
       >
         <View style={styles.headerContent}>
-          <View style={styles.locationContainer}>
-            <Text style={styles.locationText}>
-              {locationFlag} {locationName}
-            </Text>
-            <TouchableOpacity style={styles.changeLocationButton}>
-              <Ionicons name="chevron-down" size={16} color="white" />
-            </TouchableOpacity>
-          </View>
+          <LocationDropdown />
           
           <TouchableOpacity style={styles.profileButton}>
             <Ionicons name="person-outline" size={24} color="white" />

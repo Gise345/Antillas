@@ -1,10 +1,13 @@
 import React, { createContext, useContext, useState, ReactNode } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { LocationTheme } from '@/constants/Colors';
 
 interface LocationContextType {
   currentLocation: LocationTheme;
   setLocation: (location: LocationTheme) => void;
   isLocationSelected: boolean;
+  showLocationSelector: () => void;
+  resetLocationSelection: () => void;
 }
 
 const LocationContext = createContext<LocationContextType | undefined>(undefined);
@@ -17,10 +20,42 @@ export function LocationProvider({ children }: LocationProviderProps) {
   const [currentLocation, setCurrentLocation] = useState<LocationTheme>('cayman');
   const [isLocationSelected, setIsLocationSelected] = useState(false);
 
-  const setLocation = (location: LocationTheme) => {
+  const setLocation = async (location: LocationTheme) => {
     setCurrentLocation(location);
     setIsLocationSelected(true);
+    // Persist location selection
+    await AsyncStorage.setItem('selectedLocation', location);
+    await AsyncStorage.setItem('locationSelected', 'true');
   };
+
+  const showLocationSelector = () => {
+    setIsLocationSelected(false);
+  };
+
+  const resetLocationSelection = async () => {
+    setIsLocationSelected(false);
+    await AsyncStorage.removeItem('selectedLocation');
+    await AsyncStorage.removeItem('locationSelected');
+  };
+
+  // Load saved location on app start
+  React.useEffect(() => {
+    const loadSavedLocation = async () => {
+      try {
+        const savedLocation = await AsyncStorage.getItem('selectedLocation');
+        const locationSelected = await AsyncStorage.getItem('locationSelected');
+        
+        if (savedLocation && locationSelected === 'true') {
+          setCurrentLocation(savedLocation as LocationTheme);
+          setIsLocationSelected(true);
+        }
+      } catch (error) {
+        console.log('Error loading saved location:', error);
+      }
+    };
+    
+    loadSavedLocation();
+  }, []);
 
   return (
     <LocationContext.Provider
@@ -28,6 +63,8 @@ export function LocationProvider({ children }: LocationProviderProps) {
         currentLocation,
         setLocation,
         isLocationSelected,
+        showLocationSelector,
+        resetLocationSelection,
       }}
     >
       {children}

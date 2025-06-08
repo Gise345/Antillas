@@ -1,3 +1,5 @@
+// File: C:\CaribTradeHub\app\(tabs)\_layout.tsx
+
 import { Tabs } from 'expo-router';
 import React from 'react';
 import { Platform } from 'react-native';
@@ -5,7 +7,7 @@ import { Ionicons } from '@expo/vector-icons';
 
 import { HapticTab } from '@/components/HapticTab';
 import TabBarBackground from '@/components/ui/TabBarBackground';
-import { useLocationTheme } from '../../contexts/LocationContext';
+import { useLocationTheme } from '@/contexts/LocationContext';
 
 export default function TabLayout() {
   const { colors } = useLocationTheme();

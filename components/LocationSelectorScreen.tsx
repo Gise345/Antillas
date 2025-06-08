@@ -189,7 +189,7 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.lg,
   },
   selectButton: {
-    paddingVertical: Spacing.md,
+    paddingVertical: Spacing.sm,
     paddingHorizontal: Spacing.xl,
     borderRadius: BorderRadius.lg,
     minWidth: 160,
