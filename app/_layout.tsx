@@ -7,12 +7,15 @@ import { useEffect } from 'react';
 import 'react-native-reanimated';
 
 import { useColorScheme } from '@/hooks/useColorScheme';
+import { LocationProvider, useLocation } from '../contexts/LocationContext';
+import LocationSelectorScreen from '../components/LocationSelectorScreen';
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
 
-export default function RootLayout() {
+function AppContent() {
   const colorScheme = useColorScheme();
+  const { isLocationSelected } = useLocation();
   const [loaded] = useFonts({
     SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
   });
@@ -27,6 +30,11 @@ export default function RootLayout() {
     return null;
   }
 
+  // Show location selector if no location is selected
+  if (!isLocationSelected) {
+    return <LocationSelectorScreen />;
+  }
+
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
       <Stack>
@@ -35,5 +43,13 @@ export default function RootLayout() {
       </Stack>
       <StatusBar style="auto" />
     </ThemeProvider>
+  );
+}
+
+export default function RootLayout() {
+  return (
+    <LocationProvider>
+      <AppContent />
+    </LocationProvider>
   );
 }
