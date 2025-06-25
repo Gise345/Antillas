@@ -1,4 +1,4 @@
-// File: C:\CaribTradeHub\app\(tabs)\bookings.tsx
+// File: C:\Antillas\app\(tabs)\bookings.tsx
 
 import React, { useState } from 'react';
 import {

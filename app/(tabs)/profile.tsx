@@ -1,4 +1,4 @@
-// File: C:\CaribTradeHub\app\(tabs)\profile.tsx
+// File: C:\Antillas\app\(tabs)\profile.tsx
 
 import React from 'react';
 import {
@@ -314,7 +314,7 @@ export default function ProfileScreen() {
         {/* App Version */}
         <View style={styles.appVersion}>
           <Text style={[styles.versionText, { color: CommonColors.gray[500] }]}>
-            Carib Trade Hub v1.0.0
+            Antillas v1.0.0
           </Text>
         </View>
       </ScrollView>

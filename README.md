@@ -1,5 +1,25 @@
 # Welcome to your Expo app 👋
 
+# Antillas 🏝️
+
+Caribbean service marketplace app connecting service providers and customers across the Cayman Islands and Jamaica.
+
+## Features
+- Multi-island support (Cayman Islands & Jamaica)
+- AI-powered service discovery
+- Secure payments with local Caribbean payment methods
+- Real-time messaging
+- Geolocation-based provider search
+- Multi-currency support (KYD, JMD, USD)
+
+## Tech Stack
+- React Native with Expo
+- Redux Toolkit
+- React Navigation
+- Firebase Auth
+- Stripe Payments
+- React Native Maps
+
 This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
 
 ## Get started

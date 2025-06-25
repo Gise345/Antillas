@@ -1,4 +1,4 @@
-// File: C:\CaribTradeHub\app\(tabs)\search.tsx
+// File: C:\Antillas\app\(tabs)\search.tsx
 
 import React, { useState } from 'react';
 import {

@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "CaribTradeHub",
-    "slug": "CaribTradeHub",
+    "name": "Antillas",
+    "slug": "antillas",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -9,7 +9,11 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.giselle345.CaribTradeHub",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -43,7 +47,7 @@
         "origin": false
       },
       "eas": {
-        "projectId": "0f5ea937-ce43-4e22-af20-915bff771a80"
+        "projectId": "6fcaeb28-73e5-4bd4-b232-8546eb839f17"
       }
     }
   }

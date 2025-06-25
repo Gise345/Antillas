@@ -68,7 +68,7 @@ export default function LocationSelectorScreen() {
         <View style={styles.content}>
           <View style={styles.header}>
             <Text style={styles.title}>Welcome to</Text>
-            <Text style={styles.appName}>Carib Trade Hub</Text>
+            <Text style={styles.appName}>Antillas\</Text>
             <Text style={styles.description}>
               Your trusted marketplace for professional services across the Caribbean
             </Text>

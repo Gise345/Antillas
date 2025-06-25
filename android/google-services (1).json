@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "175857199637",
+    "project_id": "antillas-c7f42",
+    "storage_bucket": "antillas-c7f42.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:175857199637:android:f6ecdfa825087de1d8bc1c",
+        "android_client_info": {
+          "package_name": "com.giselle345.antillas"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCtedbXiugA8nD8s-wX-5YdWyHmQTgGpXs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

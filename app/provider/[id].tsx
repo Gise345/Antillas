@@ -1,4 +1,4 @@
-// File: C:\CaribTradeHub\app\provider\[id].tsx
+// File: C:\Antillas\app\provider\[id].tsx
 
 import React, { useState } from 'react';
 import {
