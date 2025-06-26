@@ -7,8 +7,8 @@ import {
   StyleSheet,
   Dimensions,
   ScrollView,
-  Image,
   StatusBar,
+  Alert,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -22,23 +22,38 @@ interface LocationCardProps {
   name: string;
   subtitle: string;
   flag: string;
-  onSelect: () => void;
+  onSelect: (location: LocationTheme) => void;
 }
 
 function LocationCard({ location, name, subtitle, flag, onSelect }: LocationCardProps) {
   const theme = location === 'cayman' ? CaymanTheme.light : JamaicaTheme.light;
-
-  // Ensure theme.gradient is a tuple of at least two strings
-  const gradientColors: [string, string, ...string[]] = theme.gradient as [string, string, ...string[]];
-
+  
+  const handlePress = () => {
+    console.log(`LocationCard pressed for: ${location}`); // Debug log
+    Alert.alert(
+      `Welcome to ${name}!`,
+      `You've selected ${name}. The app will now show services and pricing for this location.`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { 
+          text: 'Continue', 
+          onPress: () => {
+            console.log(`Confirming selection: ${location}`); // Debug log
+            onSelect(location);
+          }
+        },
+      ]
+    );
+  };
+  
   return (
     <TouchableOpacity
       style={[styles.locationCard, { shadowColor: theme.shadow }]}
-      onPress={onSelect}
+      onPress={handlePress}
       activeOpacity={0.9}
     >
       <LinearGradient
-        colors={gradientColors}
+        colors={theme.gradient as unknown as [string, string, ...string[]]}
         style={styles.cardGradient}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
@@ -89,6 +104,11 @@ export default function WelcomeScreen({ onLocationSelect }: WelcomeScreenProps) 
       description: 'Book services with ease while respecting our island time culture'
     }
   ];
+
+  const handleLocationSelect = (location: LocationTheme) => {
+    console.log(`WelcomeScreen - Location selected: ${location}`); // Debug log
+    onLocationSelect(location);
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -154,7 +174,7 @@ export default function WelcomeScreen({ onLocationSelect }: WelcomeScreenProps) 
                 name="Cayman Islands"
                 subtitle="Professional paradise services"
                 flag="🇰🇾"
-                onSelect={() => onLocationSelect('cayman')}
+                onSelect={handleLocationSelect}
               />
               
               <LocationCard
@@ -162,7 +182,7 @@ export default function WelcomeScreen({ onLocationSelect }: WelcomeScreenProps) 
                 name="Jamaica"
                 subtitle="Vibrant island expertise"
                 flag="🇯🇲"
-                onSelect={() => onLocationSelect('jamaica')}
+                onSelect={handleLocationSelect}
               />
             </View>
           </View>

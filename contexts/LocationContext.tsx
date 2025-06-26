@@ -1,12 +1,12 @@
 // contexts/LocationContext.tsx
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { LocationTheme, getLocationTheme } from '@/constants/CaribbeanColors';
 import { useColorScheme } from '@/hooks/useColorScheme';
 
 interface LocationContextType {
   currentLocation: LocationTheme;
-  setLocation: (location: LocationTheme) => void;
+  setLocation: (location: LocationTheme) => Promise<void>;
   isLocationSelected: boolean;
   showLocationSelector: () => void;
   resetLocationSelection: () => void;
@@ -23,12 +23,15 @@ export function LocationProvider({ children }: LocationProviderProps) {
   const [isLocationSelected, setIsLocationSelected] = useState(false);
 
   const setLocation = async (location: LocationTheme) => {
+    console.log('Setting location to:', location); // Debug log
     setCurrentLocation(location);
     setIsLocationSelected(true);
+    
     // Persist location selection
     try {
       await AsyncStorage.setItem('selectedLocation', location);
       await AsyncStorage.setItem('locationSelected', 'true');
+      console.log('Location saved to storage:', location); // Debug log
     } catch (error) {
       console.log('Error saving location:', error);
     }
@@ -49,11 +52,13 @@ export function LocationProvider({ children }: LocationProviderProps) {
   };
 
   // Load saved location on app start
-  React.useEffect(() => {
+  useEffect(() => {
     const loadSavedLocation = async () => {
       try {
         const savedLocation = await AsyncStorage.getItem('selectedLocation');
         const locationSelected = await AsyncStorage.getItem('locationSelected');
+        
+        console.log('Loaded from storage - Location:', savedLocation, 'Selected:', locationSelected); // Debug log
         
         if (savedLocation && locationSelected === 'true') {
           setCurrentLocation(savedLocation as LocationTheme);
@@ -94,6 +99,8 @@ export function useLocation() {
 export function useLocationTheme() {
   const { currentLocation } = useLocation();
   const colorScheme = useColorScheme();
+  
+  console.log('useLocationTheme - Current location:', currentLocation); // Debug log
   
   return {
     colors: getLocationTheme(currentLocation, colorScheme || 'light'),
