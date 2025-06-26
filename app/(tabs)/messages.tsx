@@ -1,5 +1,4 @@
-// File: C:\Antillas\app\(tabs)\messages.tsx
-
+// app/(tabs)/messages.tsx
 import React, { useState } from 'react';
 import {
   View,
@@ -9,11 +8,14 @@ import {
   StyleSheet,
   Image,
   TextInput,
+  Modal,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useLocationTheme } from '@/contexts/LocationContext';
-import { Typography, Spacing, BorderRadius, Shadows, CommonColors } from '@/constants/Colors';
+import { CaribbeanDesign } from '@/constants/CaribbeanColors';
+import AISearchScreen from '@/components/AISearchScreen';
 
 interface Message {
   id: string;
@@ -24,7 +26,7 @@ interface Message {
   timestamp: string;
   unreadCount: number;
   isOnline: boolean;
-  bookingId?: string;
+  isAI?: boolean;
 }
 
 interface MessageItemProps {
@@ -56,33 +58,44 @@ function MessageItem({ message, onPress }: MessageItemProps) {
       activeOpacity={0.8}
     >
       <View style={styles.messageContent}>
-        <View style={styles.providerImageContainer}>
-          <Image source={{ uri: message.providerImage }} style={styles.providerImage} />
-          {message.isOnline && (
+        <View style={styles.avatarContainer}>
+          {message.isAI ? (
+            <LinearGradient
+              colors={colors.gradient as [string, string, ...string[]]}
+              style={styles.aiAvatar}
+            >
+              <Ionicons name="sparkles" size={20} color="white" />
+            </LinearGradient>
+          ) : (
+            <Image source={{ uri: message.providerImage }} style={styles.avatar} />
+          )}
+          {message.isOnline && !message.isAI && (
             <View style={[styles.onlineIndicator, { backgroundColor: colors.success }]} />
           )}
         </View>
         
         <View style={styles.messageDetails}>
           <View style={styles.messageHeader}>
-            <Text style={[styles.providerName, { color: colors.onSurface }]} numberOfLines={1}>
+            <Text style={[styles.providerName, { color: colors.text }]} numberOfLines={1}>
               {message.providerName}
             </Text>
-            <Text style={[styles.timestamp, { color: CommonColors.gray[500] }]}>
+            <Text style={[styles.timestamp, { color: colors.textSecondary }]}>
               {formatTimestamp(message.timestamp)}
             </Text>
           </View>
           
-          <Text style={[styles.serviceName, { color: colors.primary }]} numberOfLines={1}>
-            {message.serviceName}
-          </Text>
+          {!message.isAI && (
+            <Text style={[styles.serviceName, { color: colors.primary }]} numberOfLines={1}>
+              {message.serviceName}
+            </Text>
+          )}
           
           <Text 
             style={[
               styles.lastMessage, 
               { 
-                color: message.unreadCount > 0 ? colors.onSurface : CommonColors.gray[600],
-                fontWeight: message.unreadCount > 0 ? '600' : '400'
+                color: message.unreadCount > 0 ? colors.text : colors.textSecondary,
+                fontWeight: message.unreadCount > 0 ? '600' : 'normal'
               }
             ]} 
             numberOfLines={2}
@@ -99,7 +112,7 @@ function MessageItem({ message, onPress }: MessageItemProps) {
               </Text>
             </View>
           )}
-          <Ionicons name="chevron-forward" size={16} color={CommonColors.gray[400]} />
+          <Ionicons name="chevron-forward" size={16} color={colors.textSecondary} />
         </View>
       </View>
     </TouchableOpacity>
@@ -107,63 +120,61 @@ function MessageItem({ message, onPress }: MessageItemProps) {
 }
 
 export default function MessagesScreen() {
-  const { colors } = useLocationTheme();
+  const { colors, location } = useLocationTheme();
   const [searchQuery, setSearchQuery] = useState('');
+  const [showAIChat, setShowAIChat] = useState(false);
 
   const mockMessages: Message[] = [
     {
+      id: 'ai-assistant',
+      providerName: 'Antillas AI Assistant',
+      providerImage: '',
+      serviceName: '',
+      lastMessage: "Hi! I'm here to help you find the perfect service provider. What do you need help with today?",
+      timestamp: '2024-03-15T10:00:00Z',
+      unreadCount: 0,
+      isOnline: true,
+      isAI: true,
+    },
+    {
       id: '1',
       providerName: 'Marcus Johnson',
-      providerImage: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150',
+      providerImage: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=50&h=50&fit=crop&crop=face',
       serviceName: 'Plumbing Service',
-      lastMessage: "I'll be there at 2 PM sharp. Please have the area clear so I can access the pipes easily.",
-      timestamp: '2024-06-08T13:30:00Z',
+      lastMessage: "I'll be there at 2 PM sharp. Please have the area accessible so I can start the repair immediately.",
+      timestamp: '2024-03-15T13:30:00Z',
       unreadCount: 2,
       isOnline: true,
-      bookingId: '1',
     },
     {
       id: '2',
       providerName: 'Sarah Williams',
-      providerImage: 'https://images.unsplash.com/photo-1494790108755-2616b5da2c79?w=150',
+      providerImage: 'https://images.unsplash.com/photo-1494790108755-2616b5da2c79?w=50&h=50&fit=crop&crop=face',
       serviceName: 'Interior Design',
       lastMessage: 'Perfect! I love the color scheme you chose. When would you like to schedule the consultation?',
-      timestamp: '2024-06-08T11:15:00Z',
+      timestamp: '2024-03-15T11:15:00Z',
       unreadCount: 0,
       isOnline: true,
-      bookingId: '2',
     },
     {
       id: '3',
       providerName: 'David Brown',
-      providerImage: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150',
+      providerImage: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=50&h=50&fit=crop&crop=face',
       serviceName: 'Auto Repair',
-      lastMessage: 'Your car is ready for pickup. The issue was with the alternator as suspected.',
-      timestamp: '2024-06-08T09:45:00Z',
+      lastMessage: 'Your car is ready for pickup. The issue was with the alternator as we discussed.',
+      timestamp: '2024-03-15T09:45:00Z',
       unreadCount: 1,
       isOnline: false,
-      bookingId: '3',
     },
     {
       id: '4',
       providerName: 'Lisa Garcia',
-      providerImage: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150',
+      providerImage: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=50&h=50&fit=crop&crop=face',
       serviceName: 'House Cleaning',
-      lastMessage: 'Thank you for the great review! I appreciate your business.',
-      timestamp: '2024-06-07T16:20:00Z',
+      lastMessage: 'Thank you for the excellent review! I appreciate your business and look forward to working with you again.',
+      timestamp: '2024-03-14T16:20:00Z',
       unreadCount: 0,
       isOnline: false,
-      bookingId: '4',
-    },
-    {
-      id: '5',
-      providerName: 'AI Assistant',
-      providerImage: 'https://images.unsplash.com/photo-1677442136019-21780ecad995?w=150',
-      serviceName: 'Support',
-      lastMessage: "Hi! I'm here to help you find the perfect service provider. What do you need help with today?",
-      timestamp: '2024-06-07T10:00:00Z',
-      unreadCount: 0,
-      isOnline: true,
     },
   ];
 
@@ -175,62 +186,77 @@ export default function MessagesScreen() {
 
   const totalUnreadCount = mockMessages.reduce((sum, message) => sum + message.unreadCount, 0);
 
+  const handleMessagePress = (message: Message) => {
+    if (message.isAI) {
+      setShowAIChat(true);
+    } else {
+      // Navigate to individual chat screen
+      console.log('Open chat with:', message.providerName);
+    }
+  };
+
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       {/* Header */}
-      <View style={styles.header}>
-        <View>
-          <Text style={[styles.headerTitle, { color: colors.onSurface }]}>Messages</Text>
-          {totalUnreadCount > 0 && (
-            <Text style={[styles.unreadSummary, { color: colors.primary }]}>
-              {totalUnreadCount} unread message{totalUnreadCount > 1 ? 's' : ''}
-            </Text>
-          )}
+      <LinearGradient colors={colors.gradient as [string, string, ...string[]]} style={styles.header}>
+        <View style={styles.headerContent}>
+          <View style={styles.headerTitleContainer}>
+            <Text style={styles.headerTitle}>Messages</Text>
+            {totalUnreadCount > 0 && (
+              <View style={styles.headerBadge}>
+                <Text style={styles.headerBadgeText}>{totalUnreadCount}</Text>
+              </View>
+            )}
+          </View>
+          <Text style={styles.headerSubtitle}>
+            Chat with service providers and get instant help
+          </Text>
         </View>
-        <View style={styles.headerActions}>
-          <TouchableOpacity style={styles.headerButton}>
-            <Ionicons name="search-outline" size={24} color={colors.primary} />
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.headerButton}>
-            <Ionicons name="add-outline" size={24} color={colors.primary} />
-          </TouchableOpacity>
-        </View>
-      </View>
+        <TouchableOpacity style={styles.headerAction}>
+          <Ionicons name="create-outline" size={24} color="white" />
+        </TouchableOpacity>
+      </LinearGradient>
 
       {/* Search Bar */}
-      <View style={[styles.searchContainer, { backgroundColor: colors.surface }]}>
-        <Ionicons name="search" size={20} color={CommonColors.gray[500]} />
-        <TextInput
-          style={[styles.searchInput, { color: colors.onSurface }]}
-          placeholder="Search messages..."
-          placeholderTextColor={CommonColors.gray[500]}
-          value={searchQuery}
-          onChangeText={setSearchQuery}
-        />
-        {searchQuery.length > 0 && (
-          <TouchableOpacity onPress={() => setSearchQuery('')}>
-            <Ionicons name="close-circle" size={20} color={CommonColors.gray[400]} />
-          </TouchableOpacity>
-        )}
+      <View style={styles.searchSection}>
+        <View style={[styles.searchBar, { backgroundColor: colors.surface }]}>
+          <Ionicons name="search" size={20} color={colors.textSecondary} />
+          <TextInput
+            style={[styles.searchInput, { color: colors.text }]}
+            placeholder="Search conversations..."
+            placeholderTextColor={colors.textSecondary}
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+          />
+          {searchQuery.length > 0 && (
+            <TouchableOpacity onPress={() => setSearchQuery('')}>
+              <Ionicons name="close-circle" size={20} color={colors.textSecondary} />
+            </TouchableOpacity>
+          )}
+        </View>
       </View>
 
       {/* Quick Actions */}
-      <View style={styles.quickActions}>
-        <TouchableOpacity 
-          style={[styles.quickActionButton, { backgroundColor: colors.primary }]}
-          activeOpacity={0.8}
-        >
-          <Ionicons name="chatbox" size={20} color="white" />
-          <Text style={styles.quickActionText}>Ask AI Assistant</Text>
-        </TouchableOpacity>
-        
-        <TouchableOpacity 
-          style={[styles.quickActionButton, { backgroundColor: colors.secondary }]}
-          activeOpacity={0.8}
-        >
-          <Ionicons name="call" size={20} color="white" />
-          <Text style={styles.quickActionText}>Emergency Contact</Text>
-        </TouchableOpacity>
+      <View style={styles.quickActionsSection}>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.quickActionsScroll}>
+          <TouchableOpacity 
+            style={[styles.quickActionButton, { backgroundColor: colors.primary }]}
+            onPress={() => setShowAIChat(true)}
+          >
+            <Ionicons name="sparkles" size={18} color="white" />
+            <Text style={styles.quickActionText}>Ask AI Assistant</Text>
+          </TouchableOpacity>
+          
+          <TouchableOpacity style={[styles.quickActionButton, { backgroundColor: colors.success }]}>
+            <Ionicons name="call" size={18} color="white" />
+            <Text style={styles.quickActionText}>Emergency Contact</Text>
+          </TouchableOpacity>
+          
+          <TouchableOpacity style={[styles.quickActionButton, { backgroundColor: colors.secondary }]}>
+            <Ionicons name="people" size={18} color="white" />
+            <Text style={styles.quickActionText}>Group Services</Text>
+          </TouchableOpacity>
+        </ScrollView>
       </View>
 
       {/* Messages List */}
@@ -241,28 +267,30 @@ export default function MessagesScreen() {
               <MessageItem
                 key={message.id}
                 message={message}
-                onPress={() => {}}
+                onPress={() => handleMessagePress(message)}
               />
             ))}
           </View>
         ) : (
           <View style={styles.emptyState}>
-            <Ionicons name="chatbubbles-outline" size={64} color={CommonColors.gray[400]} />
-            <Text style={[styles.emptyTitle, { color: colors.onSurface }]}>
-              {searchQuery ? 'No messages found' : 'No messages yet'}
+            <View style={[styles.emptyIcon, { backgroundColor: colors.primary + '20' }]}>
+              <Ionicons name="chatbubbles-outline" size={48} color={colors.primary} />
+            </View>
+            <Text style={[styles.emptyTitle, { color: colors.text }]}>
+              {searchQuery ? 'No messages found' : 'No conversations yet'}
             </Text>
-            <Text style={[styles.emptyDescription, { color: CommonColors.gray[600] }]}>
+            <Text style={[styles.emptyDescription, { color: colors.textSecondary }]}>
               {searchQuery 
                 ? `No messages match "${searchQuery}". Try a different search term.`
-                : "Start a conversation with a service provider or use our AI assistant for help."
+                : "Start a conversation with a service provider or chat with our AI assistant for help finding services."
               }
             </Text>
             {!searchQuery && (
               <TouchableOpacity
                 style={[styles.startChatButton, { backgroundColor: colors.primary }]}
-                activeOpacity={0.8}
+                onPress={() => setShowAIChat(true)}
               >
-                <Ionicons name="chatbox" size={20} color="white" />
+                <Ionicons name="sparkles" size={20} color="white" />
                 <Text style={styles.startChatButtonText}>Chat with AI Assistant</Text>
               </TouchableOpacity>
             )}
@@ -270,13 +298,17 @@ export default function MessagesScreen() {
         )}
       </ScrollView>
 
-      {/* Floating Action Button */}
-      <TouchableOpacity
-        style={[styles.fab, { backgroundColor: colors.primary }]}
-        activeOpacity={0.8}
+      {/* AI Chat Modal */}
+      <Modal
+        visible={showAIChat}
+        animationType="slide"
+        presentationStyle="fullScreen"
       >
-        <Ionicons name="create-outline" size={24} color="white" />
-      </TouchableOpacity>
+        <AISearchScreen 
+          location={location} 
+          onClose={() => setShowAIChat(false)} 
+        />
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -289,85 +321,114 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
-    paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.md,
+    paddingTop: CaribbeanDesign.spacing.md,
+    paddingBottom: CaribbeanDesign.spacing.xl,
+    paddingHorizontal: CaribbeanDesign.spacing.lg,
+    borderBottomLeftRadius: CaribbeanDesign.borderRadius.xl,
+    borderBottomRightRadius: CaribbeanDesign.borderRadius.xl,
   },
-  headerTitle: {
-    ...Typography.heading2,
-    fontWeight: '600',
-    marginBottom: Spacing.xs,
+  headerContent: {
+    flex: 1,
   },
-  unreadSummary: {
-    ...Typography.body2,
-    fontWeight: '500',
-  },
-  headerActions: {
-    flexDirection: 'row',
-    gap: Spacing.sm,
-  },
-  headerButton: {
-    padding: Spacing.xs,
-  },
-  searchContainer: {
+  headerTitleContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginHorizontal: Spacing.lg,
-    marginBottom: Spacing.md,
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.md,
-    borderRadius: BorderRadius.lg,
-    gap: Spacing.md,
-    ...Shadows.sm,
+    marginBottom: CaribbeanDesign.spacing.xs,
+    gap: CaribbeanDesign.spacing.sm,
+  },
+  headerTitle: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    color: 'white',
+  },
+  headerBadge: {
+    backgroundColor: 'rgba(255, 255, 255, 0.3)',
+    borderRadius: 12,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    minWidth: 24,
+    alignItems: 'center',
+  },
+  headerBadgeText: {
+    fontSize: 12,
+    fontWeight: 'bold',
+    color: 'white',
+  },
+  headerSubtitle: {
+    fontSize: 16,
+    color: 'rgba(255, 255, 255, 0.9)',
+  },
+  headerAction: {
+    padding: CaribbeanDesign.spacing.xs,
+  },
+  searchSection: {
+    paddingHorizontal: CaribbeanDesign.spacing.lg,
+    paddingVertical: CaribbeanDesign.spacing.md,
+  },
+  searchBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: CaribbeanDesign.spacing.md,
+    paddingVertical: CaribbeanDesign.spacing.md,
+    borderRadius: CaribbeanDesign.borderRadius.lg,
+    gap: CaribbeanDesign.spacing.md,
+    ...CaribbeanDesign.shadows.sm,
   },
   searchInput: {
     flex: 1,
-    ...Typography.body1,
+    fontSize: 16,
   },
-  quickActions: {
-    flexDirection: 'row',
-    paddingHorizontal: Spacing.lg,
-    marginBottom: Spacing.lg,
-    gap: Spacing.md,
+  quickActionsSection: {
+    paddingVertical: CaribbeanDesign.spacing.sm,
+  },
+  quickActionsScroll: {
+    paddingHorizontal: CaribbeanDesign.spacing.lg,
   },
   quickActionButton: {
-    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: Spacing.md,
-    borderRadius: BorderRadius.lg,
-    gap: Spacing.sm,
+    paddingVertical: CaribbeanDesign.spacing.sm,
+    paddingHorizontal: CaribbeanDesign.spacing.md,
+    borderRadius: CaribbeanDesign.borderRadius.lg,
+    marginRight: CaribbeanDesign.spacing.sm,
+    gap: CaribbeanDesign.spacing.xs,
   },
   quickActionText: {
-    ...Typography.body2,
-    color: 'white',
+    fontSize: 14,
     fontWeight: '600',
+    color: 'white',
   },
   content: {
     flex: 1,
   },
   messagesList: {
-    paddingHorizontal: Spacing.lg,
-    paddingBottom: 100, // Space for FAB
-    gap: Spacing.sm,
+    padding: CaribbeanDesign.spacing.lg,
+    gap: CaribbeanDesign.spacing.sm,
   },
   messageItem: {
-    borderRadius: BorderRadius.lg,
-    ...Shadows.sm,
+    borderRadius: CaribbeanDesign.borderRadius.lg,
+    ...CaribbeanDesign.shadows.sm,
   },
   messageContent: {
     flexDirection: 'row',
-    padding: Spacing.md,
+    padding: CaribbeanDesign.spacing.md,
     alignItems: 'flex-start',
-    gap: Spacing.md,
+    gap: CaribbeanDesign.spacing.md,
   },
-  providerImageContainer: {
+  avatarContainer: {
     position: 'relative',
   },
-  providerImage: {
+  avatar: {
     width: 48,
     height: 48,
-    borderRadius: BorderRadius.full,
+    borderRadius: 24,
+  },
+  aiAvatar: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   onlineIndicator: {
     position: 'absolute',
@@ -375,13 +436,13 @@ const styles = StyleSheet.create({
     right: 0,
     width: 14,
     height: 14,
-    borderRadius: BorderRadius.full,
+    borderRadius: 7,
     borderWidth: 2,
     borderColor: 'white',
   },
   messageDetails: {
     flex: 1,
-    gap: Spacing.xs,
+    gap: 4,
   },
   messageHeader: {
     flexDirection: 'row',
@@ -389,79 +450,75 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   providerName: {
-    ...Typography.body1,
+    fontSize: 16,
     fontWeight: '600',
     flex: 1,
   },
   timestamp: {
-    ...Typography.caption,
+    fontSize: 12,
   },
   serviceName: {
-    ...Typography.body2,
+    fontSize: 14,
     fontWeight: '500',
   },
   lastMessage: {
-    ...Typography.body2,
+    fontSize: 14,
     lineHeight: 20,
   },
   messageActions: {
     alignItems: 'center',
-    gap: Spacing.sm,
+    gap: CaribbeanDesign.spacing.sm,
   },
   unreadBadge: {
     minWidth: 20,
     height: 20,
-    borderRadius: BorderRadius.full,
+    borderRadius: 10,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: Spacing.xs,
+    paddingHorizontal: 6,
   },
   unreadCount: {
-    ...Typography.caption,
+    fontSize: 11,
+    fontWeight: 'bold',
     color: 'white',
-    fontWeight: '600',
-    fontSize: 10,
   },
   emptyState: {
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: Spacing.xl,
-    paddingVertical: Spacing.xxxl,
+    paddingHorizontal: CaribbeanDesign.spacing.xl,
+    paddingVertical: CaribbeanDesign.spacing.xxl * 2,
+  },
+  emptyIcon: {
+    width: 96,
+    height: 96,
+    borderRadius: 48,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: CaribbeanDesign.spacing.lg,
   },
   emptyTitle: {
-    ...Typography.heading3,
-    fontWeight: '600',
-    marginTop: Spacing.lg,
-    marginBottom: Spacing.md,
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginBottom: CaribbeanDesign.spacing.md,
     textAlign: 'center',
   },
   emptyDescription: {
-    ...Typography.body1,
+    fontSize: 16,
     textAlign: 'center',
-    marginBottom: Spacing.xl,
     lineHeight: 24,
+    marginBottom: CaribbeanDesign.spacing.xl,
   },
   startChatButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: Spacing.md,
-    paddingHorizontal: Spacing.xl,
-    borderRadius: BorderRadius.lg,
-    gap: Spacing.sm,
+    paddingVertical: CaribbeanDesign.spacing.md,
+    paddingHorizontal: CaribbeanDesign.spacing.xl,
+    borderRadius: CaribbeanDesign.borderRadius.lg,
+    gap: CaribbeanDesign.spacing.sm,
   },
   startChatButtonText: {
-    ...Typography.button,
+    fontSize: 16,
+    fontWeight: '600',
     color: 'white',
-  },
-  fab: {
-    position: 'absolute',
-    bottom: Spacing.xl,
-    right: Spacing.lg,
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    alignItems: 'center',
-    justifyContent: 'center',
-    ...Shadows.lg,
   },
 });

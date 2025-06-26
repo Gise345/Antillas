@@ -1,5 +1,4 @@
-// File: C:\Antillas\app\(tabs)\bookings.tsx
-
+// app/(tabs)/bookings.tsx
 import React, { useState } from 'react';
 import {
   View,
@@ -11,17 +10,17 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useLocationTheme } from '@/contexts/LocationContext';
-import { Typography, Spacing, BorderRadius, Shadows, CommonColors } from '@/constants/Colors';
+import { CaribbeanDesign } from '@/constants/CaribbeanColors';
 
 type BookingStatus = 'upcoming' | 'ongoing' | 'completed' | 'cancelled';
-type BookingFilter = 'all' | BookingStatus;
 
 interface Booking {
   id: string;
+  serviceName: string;
   providerName: string;
   providerImage: string;
-  serviceName: string;
   date: string;
   time: string;
   status: BookingStatus;
@@ -29,32 +28,34 @@ interface Booking {
   currency: string;
   location: string;
   rating?: number;
-  hasReview?: boolean;
 }
 
 interface BookingCardProps {
   booking: Booking;
   onPress: () => void;
-  onMessage: () => void;
-  onCancel?: () => void;
-  onReview?: () => void;
 }
 
-function BookingCard({ booking, onPress, onMessage, onCancel, onReview }: BookingCardProps) {
+function BookingCard({ booking, onPress }: BookingCardProps) {
   const { colors } = useLocationTheme();
   
   const getStatusColor = (status: BookingStatus) => {
     switch (status) {
       case 'upcoming': return colors.primary;
-      case 'ongoing': return colors.warning;
+      case 'ongoing': return '#F59E0B';
       case 'completed': return colors.success;
-      case 'cancelled': return colors.error;
-      default: return CommonColors.gray[500];
+      case 'cancelled': return '#EF4444';
+      default: return colors.textSecondary;
     }
   };
 
-  const getStatusText = (status: BookingStatus) => {
-    return status.charAt(0).toUpperCase() + status.slice(1);
+  const getStatusIcon = (status: BookingStatus) => {
+    switch (status) {
+      case 'upcoming': return 'time-outline';
+      case 'ongoing': return 'hourglass-outline';
+      case 'completed': return 'checkmark-circle';
+      case 'cancelled': return 'close-circle';
+      default: return 'help-circle';
+    }
   };
 
   return (
@@ -64,40 +65,32 @@ function BookingCard({ booking, onPress, onMessage, onCancel, onReview }: Bookin
       activeOpacity={0.8}
     >
       <View style={styles.bookingHeader}>
-        <View style={styles.providerInfo}>
-          <Image source={{ uri: booking.providerImage }} style={styles.providerImage} />
-          <View style={styles.providerDetails}>
-            <Text style={[styles.providerName, { color: colors.onSurface }]}>
-              {booking.providerName}
-            </Text>
-            <Text style={[styles.serviceName, { color: colors.primary }]}>
-              {booking.serviceName}
-            </Text>
-          </View>
+        <Image source={{ uri: booking.providerImage }} style={styles.providerImage} />
+        <View style={styles.bookingInfo}>
+          <Text style={[styles.serviceName, { color: colors.text }]}>{booking.serviceName}</Text>
+          <Text style={[styles.providerName, { color: colors.primary }]}>{booking.providerName}</Text>
+          <Text style={[styles.bookingLocation, { color: colors.textSecondary }]}>
+            {booking.location}
+          </Text>
         </View>
         <View style={[styles.statusBadge, { backgroundColor: getStatusColor(booking.status) + '20' }]}>
+          <Ionicons name={getStatusIcon(booking.status) as any} size={14} color={getStatusColor(booking.status)} />
           <Text style={[styles.statusText, { color: getStatusColor(booking.status) }]}>
-            {getStatusText(booking.status)}
+            {booking.status.charAt(0).toUpperCase() + booking.status.slice(1)}
           </Text>
         </View>
       </View>
 
       <View style={styles.bookingDetails}>
         <View style={styles.detailRow}>
-          <Ionicons name="calendar-outline" size={16} color={CommonColors.gray[500]} />
-          <Text style={[styles.detailText, { color: colors.onSurface }]}>
+          <Ionicons name="calendar-outline" size={16} color={colors.textSecondary} />
+          <Text style={[styles.detailText, { color: colors.text }]}>
             {booking.date} at {booking.time}
           </Text>
         </View>
         <View style={styles.detailRow}>
-          <Ionicons name="location-outline" size={16} color={CommonColors.gray[500]} />
-          <Text style={[styles.detailText, { color: colors.onSurface }]}>
-            {booking.location}
-          </Text>
-        </View>
-        <View style={styles.detailRow}>
-          <Ionicons name="card-outline" size={16} color={CommonColors.gray[500]} />
-          <Text style={[styles.detailText, { color: colors.onSurface }]}>
+          <Ionicons name="card-outline" size={16} color={colors.textSecondary} />
+          <Text style={[styles.detailText, { color: colors.text }]}>
             {booking.currency}{booking.price}
           </Text>
         </View>
@@ -105,48 +98,45 @@ function BookingCard({ booking, onPress, onMessage, onCancel, onReview }: Bookin
 
       {booking.status === 'completed' && booking.rating && (
         <View style={styles.ratingContainer}>
-          <View style={styles.ratingStars}>
+          <Text style={[styles.ratingLabel, { color: colors.textSecondary }]}>Your rating:</Text>
+          <View style={styles.stars}>
             {[1, 2, 3, 4, 5].map((star) => (
               <Ionicons
                 key={star}
                 name="star"
                 size={14}
-                color={star <= booking.rating! ? '#FCD34D' : CommonColors.gray[300]}
+                color={star <= booking.rating! ? '#FFD700' : '#E5E5E5'}
               />
             ))}
           </View>
-          <Text style={[styles.ratingText, { color: colors.onSurface }]}>
-            Rated {booking.rating}/5
-          </Text>
         </View>
       )}
 
       <View style={styles.bookingActions}>
-        <TouchableOpacity
-          style={[styles.actionButton, styles.messageButton, { backgroundColor: colors.primary + '10' }]}
-          onPress={onMessage}
-        >
-          <Ionicons name="chatbubble-outline" size={16} color={colors.primary} />
-          <Text style={[styles.actionButtonText, { color: colors.primary }]}>Message</Text>
-        </TouchableOpacity>
-
-        {booking.status === 'upcoming' && onCancel && (
-          <TouchableOpacity
-            style={[styles.actionButton, styles.cancelButton]}
-            onPress={onCancel}
-          >
-            <Ionicons name="close-outline" size={16} color={colors.error} />
-            <Text style={[styles.actionButtonText, { color: colors.error }]}>Cancel</Text>
+        {booking.status === 'upcoming' && (
+          <>
+            <TouchableOpacity style={[styles.actionButton, { backgroundColor: colors.primary + '20' }]}>
+              <Ionicons name="chatbubble-outline" size={16} color={colors.primary} />
+              <Text style={[styles.actionButtonText, { color: colors.primary }]}>Message</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={[styles.actionButton, { backgroundColor: '#EF4444' + '20' }]}>
+              <Ionicons name="close-outline" size={16} color="#EF4444" />
+              <Text style={[styles.actionButtonText, { color: '#EF4444' }]}>Cancel</Text>
+            </TouchableOpacity>
+          </>
+        )}
+        
+        {booking.status === 'ongoing' && (
+          <TouchableOpacity style={[styles.actionButton, { backgroundColor: colors.primary + '20' }]}>
+            <Ionicons name="call-outline" size={16} color={colors.primary} />
+            <Text style={[styles.actionButtonText, { color: colors.primary }]}>Contact Provider</Text>
           </TouchableOpacity>
         )}
 
-        {booking.status === 'completed' && !booking.hasReview && onReview && (
-          <TouchableOpacity
-            style={[styles.actionButton, styles.reviewButton, { backgroundColor: colors.success + '10' }]}
-            onPress={onReview}
-          >
+        {booking.status === 'completed' && !booking.rating && (
+          <TouchableOpacity style={[styles.actionButton, { backgroundColor: colors.success + '20' }]}>
             <Ionicons name="star-outline" size={16} color={colors.success} />
-            <Text style={[styles.actionButtonText, { color: colors.success }]}>Review</Text>
+            <Text style={[styles.actionButtonText, { color: colors.success }]}>Rate Service</Text>
           </TouchableOpacity>
         )}
       </View>
@@ -155,149 +145,133 @@ function BookingCard({ booking, onPress, onMessage, onCancel, onReview }: Bookin
 }
 
 export default function BookingsScreen() {
-  const { colors } = useLocationTheme();
-  const [activeFilter, setActiveFilter] = useState<BookingFilter>('all');
+  const { colors, location } = useLocationTheme();
+  const [selectedTab, setSelectedTab] = useState<'all' | BookingStatus>('all');
 
   const mockBookings: Booking[] = [
     {
       id: '1',
+      serviceName: 'Pool Cleaning & Maintenance',
       providerName: 'Marcus Johnson',
-      providerImage: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150',
-      serviceName: 'Plumbing Repair',
+      providerImage: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=50&h=50&fit=crop&crop=face',
       date: 'Today',
       time: '2:00 PM',
       status: 'upcoming',
-      price: 150,
-      currency: 'KYD $',
-      location: 'George Town, Grand Cayman',
+      price: location === 'cayman' ? 120 : 9500,
+      currency: location === 'cayman' ? 'CI$' : 'J$',
+      location: location === 'cayman' ? 'Seven Mile Beach' : 'Kingston',
     },
     {
       id: '2',
-      providerName: 'Sarah Williams',
-      providerImage: 'https://images.unsplash.com/photo-1494790108755-2616b5da2c79?w=150',
       serviceName: 'Interior Design Consultation',
+      providerName: 'Sarah Williams',
+      providerImage: 'https://images.unsplash.com/photo-1494790108755-2616b5da2c79?w=50&h=50&fit=crop&crop=face',
       date: 'Tomorrow',
       time: '10:00 AM',
       status: 'upcoming',
-      price: 200,
-      currency: 'KYD $',
-      location: 'Seven Mile Beach',
+      price: location === 'cayman' ? 200 : 16000,
+      currency: location === 'cayman' ? 'CI$' : 'J$',
+      location: location === 'cayman' ? 'George Town' : 'Montego Bay',
     },
     {
       id: '3',
+      serviceName: 'AC Repair Service',
       providerName: 'David Brown',
-      providerImage: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150',
-      serviceName: 'AC Maintenance',
-      date: 'Jun 10',
+      providerImage: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=50&h=50&fit=crop&crop=face',
+      date: 'Mar 15',
       time: '9:00 AM',
       status: 'ongoing',
-      price: 120,
-      currency: 'KYD $',
-      location: 'West Bay',
+      price: location === 'cayman' ? 150 : 12000,
+      currency: location === 'cayman' ? 'CI$' : 'J$',
+      location: location === 'cayman' ? 'West Bay' : 'Spanish Town',
     },
     {
       id: '4',
+      serviceName: 'House Deep Cleaning',
       providerName: 'Lisa Garcia',
-      providerImage: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150',
-      serviceName: 'House Cleaning',
-      date: 'Jun 5',
+      providerImage: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=50&h=50&fit=crop&crop=face',
+      date: 'Mar 10',
       time: '8:00 AM',
       status: 'completed',
-      price: 80,
-      currency: 'KYD $',
-      location: 'Camana Bay',
+      price: location === 'cayman' ? 100 : 8000,
+      currency: location === 'cayman' ? 'CI$' : 'J$',
+      location: location === 'cayman' ? 'Camana Bay' : 'New Kingston',
       rating: 5,
-      hasReview: false,
     },
     {
       id: '5',
-      providerName: 'Mike Thompson',
-      providerImage: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150',
-      serviceName: 'Landscaping',
-      date: 'Jun 1',
+      serviceName: 'Garden Landscaping',
+      providerName: 'Michael Thompson',
+      providerImage: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=50&h=50&fit=crop&crop=face',
+      date: 'Mar 5',
       time: '7:00 AM',
       status: 'completed',
-      price: 300,
-      currency: 'KYD $',
-      location: 'East End',
-      rating: 4,
-      hasReview: true,
+      price: location === 'cayman' ? 300 : 24000,
+      currency: location === 'cayman' ? 'CI$' : 'J$',
+      location: location === 'cayman' ? 'East End' : 'Portmore',
     },
   ];
 
-  const filters: { key: BookingFilter; label: string }[] = [
-    { key: 'all', label: 'All' },
-    { key: 'upcoming', label: 'Upcoming' },
-    { key: 'ongoing', label: 'Ongoing' },
-    { key: 'completed', label: 'Completed' },
+  const tabs = [
+    { key: 'all', label: 'All', count: mockBookings.length },
+    { key: 'upcoming', label: 'Upcoming', count: mockBookings.filter(b => b.status === 'upcoming').length },
+    { key: 'ongoing', label: 'Ongoing', count: mockBookings.filter(b => b.status === 'ongoing').length },
+    { key: 'completed', label: 'Completed', count: mockBookings.filter(b => b.status === 'completed').length },
   ];
 
-  const filteredBookings = activeFilter === 'all' 
+  const filteredBookings = selectedTab === 'all' 
     ? mockBookings 
-    : mockBookings.filter(booking => booking.status === activeFilter);
-
-  const getBookingCounts = () => {
-    const counts = mockBookings.reduce((acc, booking) => {
-      acc[booking.status] = (acc[booking.status] || 0) + 1;
-      return acc;
-    }, {} as Record<BookingStatus, number>);
-    
-    return {
-      all: mockBookings.length,
-      ...counts,
-    };
-  };
-
-  const counts = getBookingCounts();
+    : mockBookings.filter(booking => booking.status === selectedTab);
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       {/* Header */}
-      <View style={styles.header}>
-        <Text style={[styles.headerTitle, { color: colors.onSurface }]}>My Bookings</Text>
-        <TouchableOpacity style={styles.headerButton}>
-          <Ionicons name="calendar-outline" size={24} color={colors.primary} />
-        </TouchableOpacity>
-      </View>
+      <LinearGradient colors={colors.gradient as [string, string, ...string[]]} style={styles.header}>
+        <View style={styles.headerContent}>
+          <Text style={styles.headerTitle}>My Bookings</Text>
+          <Text style={styles.headerSubtitle}>
+            Manage your service appointments
+          </Text>
+        </View>
+      </LinearGradient>
 
       {/* Filter Tabs */}
-      <View style={styles.filterContainer}>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.filterScroll}>
-          {filters.map((filter) => (
+      <View style={styles.tabsContainer}>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.tabsScroll}>
+          {tabs.map((tab) => (
             <TouchableOpacity
-              key={filter.key}
+              key={tab.key}
               style={[
-                styles.filterTab,
+                styles.tab,
                 {
-                  backgroundColor: activeFilter === filter.key ? colors.primary : colors.surface,
-                  borderColor: activeFilter === filter.key ? colors.primary : CommonColors.gray[300],
+                  backgroundColor: selectedTab === tab.key ? colors.primary : colors.surface,
+                  borderColor: selectedTab === tab.key ? colors.primary : colors.border,
                 }
               ]}
-              onPress={() => setActiveFilter(filter.key)}
-              activeOpacity={0.7}
+              onPress={() => setSelectedTab(tab.key as any)}
             >
               <Text
                 style={[
-                  styles.filterText,
-                  { color: activeFilter === filter.key ? 'white' : colors.onSurface }
+                  styles.tabText,
+                  { color: selectedTab === tab.key ? 'white' : colors.text }
                 ]}
               >
-                {filter.label}
+                {tab.label}
               </Text>
-              {(counts as any)[filter.key] > 0 && (
+              {tab.count > 0 && (
                 <View
                   style={[
-                    styles.filterBadge,
-                    { backgroundColor: activeFilter === filter.key ? 'white' : colors.primary }
+                    styles.tabBadge,
+                    { backgroundColor: selectedTab === tab.key ? 'rgba(255,255,255,0.3)' : colors.primary + '20' }
                   ]}
                 >
                   <Text
                     style={[
-                      styles.filterBadgeText,
-                      { color: activeFilter === filter.key ? colors.primary : 'white' }
+                      styles.tabBadgeText,
+                      { color: selectedTab === tab.key ? 'white' : colors.primary }
                     ]}
                   >
-                    {(counts as any)[filter.key]}
+                    {tab.count}
                   </Text>
                 </View>
               )}
@@ -315,33 +289,42 @@ export default function BookingsScreen() {
                 key={booking.id}
                 booking={booking}
                 onPress={() => {}}
-                onMessage={() => {}}
-                onCancel={booking.status === 'upcoming' ? () => {} : undefined}
-                onReview={booking.status === 'completed' && !booking.hasReview ? () => {} : undefined}
               />
             ))}
           </View>
         ) : (
           <View style={styles.emptyState}>
-            <Ionicons name="calendar-outline" size={64} color={CommonColors.gray[400]} />
-            <Text style={[styles.emptyTitle, { color: colors.onSurface }]}>
-              No {activeFilter !== 'all' ? activeFilter : ''} bookings
+            <View style={[styles.emptyIcon, { backgroundColor: colors.primary + '20' }]}>
+              <Ionicons name="calendar-outline" size={48} color={colors.primary} />
+            </View>
+            <Text style={[styles.emptyTitle, { color: colors.text }]}>
+              No {selectedTab !== 'all' ? selectedTab : ''} bookings
             </Text>
-            <Text style={[styles.emptyDescription, { color: CommonColors.gray[600] }]}>
-              {activeFilter === 'all' 
-                ? "You haven't made any bookings yet. Start by browsing our services!"
-                : `You don't have any ${activeFilter} bookings at the moment.`
+            <Text style={[styles.emptyDescription, { color: colors.textSecondary }]}>
+              {selectedTab === 'all' 
+                ? "You haven't made any bookings yet. Discover amazing services near you!"
+                : `You don't have any ${selectedTab} bookings at the moment.`
               }
             </Text>
             <TouchableOpacity
-              style={[styles.browseButton, { backgroundColor: colors.primary }]}
+              style={[styles.exploreButton, { backgroundColor: colors.primary }]}
               activeOpacity={0.8}
             >
-              <Text style={styles.browseButtonText}>Browse Services</Text>
+              <Text style={styles.exploreButtonText}>Explore Services</Text>
             </TouchableOpacity>
           </View>
         )}
       </ScrollView>
+
+      {/* Quick Actions FAB */}
+      <View style={styles.fabContainer}>
+        <TouchableOpacity
+          style={[styles.fab, { backgroundColor: colors.primary }]}
+          activeOpacity={0.8}
+        >
+          <Ionicons name="add" size={28} color="white" />
+        </TouchableOpacity>
+      </View>
     </SafeAreaView>
   );
 }
@@ -351,186 +334,198 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    paddingTop: CaribbeanDesign.spacing.md,
+    paddingBottom: CaribbeanDesign.spacing.xl,
+    paddingHorizontal: CaribbeanDesign.spacing.lg,
+    borderBottomLeftRadius: CaribbeanDesign.borderRadius.xl,
+    borderBottomRightRadius: CaribbeanDesign.borderRadius.xl,
+  },
+  headerContent: {
     alignItems: 'center',
-    paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.md,
   },
   headerTitle: {
-    ...Typography.heading2,
-    fontWeight: '600',
+    fontSize: 28,
+    fontWeight: 'bold',
+    color: 'white',
+    marginBottom: CaribbeanDesign.spacing.xs,
   },
-  headerButton: {
-    padding: Spacing.xs,
+  headerSubtitle: {
+    fontSize: 16,
+    color: 'rgba(255, 255, 255, 0.9)',
   },
-  filterContainer: {
-    paddingVertical: Spacing.md,
+  tabsContainer: {
+    paddingVertical: CaribbeanDesign.spacing.md,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E5E5',
   },
-  filterScroll: {
-    paddingHorizontal: Spacing.lg,
+  tabsScroll: {
+    paddingHorizontal: CaribbeanDesign.spacing.lg,
   },
-  filterTab: {
+  tab: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.sm,
-    borderRadius: BorderRadius.lg,
+    paddingHorizontal: CaribbeanDesign.spacing.md,
+    paddingVertical: CaribbeanDesign.spacing.sm,
+    borderRadius: CaribbeanDesign.borderRadius.lg,
     borderWidth: 1,
-    marginRight: Spacing.sm,
-    gap: Spacing.xs,
+    marginRight: CaribbeanDesign.spacing.sm,
+    gap: CaribbeanDesign.spacing.xs,
   },
-  filterText: {
-    ...Typography.body2,
-    fontWeight: '500',
+  tabText: {
+    fontSize: 14,
+    fontWeight: '600',
   },
-  filterBadge: {
+  tabBadge: {
     minWidth: 20,
     height: 20,
-    borderRadius: BorderRadius.full,
+    borderRadius: 10,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: Spacing.xs,
+    paddingHorizontal: 6,
   },
-  filterBadgeText: {
-    ...Typography.caption,
-    fontSize: 10,
-    fontWeight: '600',
+  tabBadgeText: {
+    fontSize: 11,
+    fontWeight: 'bold',
   },
   content: {
     flex: 1,
   },
   bookingsList: {
-    paddingHorizontal: Spacing.lg,
-    paddingBottom: Spacing.xl,
-    gap: Spacing.md,
+    padding: CaribbeanDesign.spacing.lg,
+    gap: CaribbeanDesign.spacing.md,
   },
   bookingCard: {
-    padding: Spacing.lg,
-    borderRadius: BorderRadius.lg,
-    ...Shadows.sm,
+    padding: CaribbeanDesign.spacing.lg,
+    borderRadius: CaribbeanDesign.borderRadius.lg,
+    ...CaribbeanDesign.shadows.sm,
   },
   bookingHeader: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'flex-start',
-    marginBottom: Spacing.md,
-  },
-  providerInfo: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flex: 1,
-    gap: Spacing.md,
+    marginBottom: CaribbeanDesign.spacing.md,
+    gap: CaribbeanDesign.spacing.md,
   },
   providerImage: {
     width: 48,
     height: 48,
-    borderRadius: BorderRadius.full,
+    borderRadius: 24,
   },
-  providerDetails: {
+  bookingInfo: {
     flex: 1,
-  },
-  providerName: {
-    ...Typography.body1,
-    fontWeight: '600',
-    marginBottom: Spacing.xs,
+    gap: 2,
   },
   serviceName: {
-    ...Typography.body2,
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  providerName: {
+    fontSize: 14,
     fontWeight: '500',
   },
+  bookingLocation: {
+    fontSize: 12,
+  },
   statusBadge: {
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.xs,
-    borderRadius: BorderRadius.md,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: CaribbeanDesign.spacing.sm,
+    paddingVertical: 4,
+    borderRadius: CaribbeanDesign.borderRadius.sm,
+    gap: 4,
   },
   statusText: {
-    ...Typography.caption,
-    fontWeight: '600',
     fontSize: 11,
+    fontWeight: '600',
   },
   bookingDetails: {
-    gap: Spacing.sm,
-    marginBottom: Spacing.md,
+    gap: CaribbeanDesign.spacing.sm,
+    marginBottom: CaribbeanDesign.spacing.md,
   },
   detailRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: Spacing.sm,
+    gap: CaribbeanDesign.spacing.sm,
   },
   detailText: {
-    ...Typography.body2,
-    flex: 1,
+    fontSize: 14,
   },
   ratingContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: Spacing.sm,
-    marginBottom: Spacing.md,
+    gap: CaribbeanDesign.spacing.sm,
+    marginBottom: CaribbeanDesign.spacing.md,
   },
-  ratingStars: {
+  ratingLabel: {
+    fontSize: 12,
+  },
+  stars: {
     flexDirection: 'row',
     gap: 2,
   },
-  ratingText: {
-    ...Typography.caption,
-    fontWeight: '500',
-  },
   bookingActions: {
     flexDirection: 'row',
-    gap: Spacing.sm,
+    gap: CaribbeanDesign.spacing.sm,
   },
   actionButton: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: Spacing.sm,
-    paddingHorizontal: Spacing.md,
-    borderRadius: BorderRadius.md,
-    gap: Spacing.xs,
-  },
-  messageButton: {
-    // backgroundColor set dynamically
-  },
-  cancelButton: {
-    backgroundColor: 'transparent',
-    borderWidth: 1,
-    borderColor: CommonColors.gray[300],
-  },
-  reviewButton: {
-    // backgroundColor set dynamically
+    paddingVertical: CaribbeanDesign.spacing.sm,
+    borderRadius: CaribbeanDesign.borderRadius.md,
+    gap: 4,
   },
   actionButtonText: {
-    ...Typography.body2,
-    fontWeight: '500',
+    fontSize: 12,
+    fontWeight: '600',
   },
   emptyState: {
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: Spacing.xl,
-    paddingVertical: Spacing.xxxl,
+    paddingHorizontal: CaribbeanDesign.spacing.xl,
+    paddingVertical: CaribbeanDesign.spacing.xxl * 2,
+  },
+  emptyIcon: {
+    width: 96,
+    height: 96,
+    borderRadius: 48,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: CaribbeanDesign.spacing.lg,
   },
   emptyTitle: {
-    ...Typography.heading3,
-    fontWeight: '600',
-    marginTop: Spacing.lg,
-    marginBottom: Spacing.md,
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginBottom: CaribbeanDesign.spacing.md,
     textAlign: 'center',
   },
   emptyDescription: {
-    ...Typography.body1,
+    fontSize: 16,
     textAlign: 'center',
-    marginBottom: Spacing.xl,
     lineHeight: 24,
+    marginBottom: CaribbeanDesign.spacing.xl,
   },
-  browseButton: {
-    paddingVertical: Spacing.md,
-    paddingHorizontal: Spacing.xl,
-    borderRadius: BorderRadius.lg,
+  exploreButton: {
+    paddingVertical: CaribbeanDesign.spacing.md,
+    paddingHorizontal: CaribbeanDesign.spacing.xl,
+    borderRadius: CaribbeanDesign.borderRadius.lg,
   },
-  browseButtonText: {
-    ...Typography.button,
+  exploreButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
     color: 'white',
+  },
+  fabContainer: {
+    position: 'absolute',
+    bottom: CaribbeanDesign.spacing.xl,
+    right: CaribbeanDesign.spacing.lg,
+  },
+  fab: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    alignItems: 'center',
+    justifyContent: 'center',
+    ...CaribbeanDesign.shadows.lg,
   },
 });

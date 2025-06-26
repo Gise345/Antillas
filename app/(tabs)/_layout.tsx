@@ -1,12 +1,11 @@
-// File: C:\Antillas\app\(tabs)\_layout.tsx
-
+// app/(tabs)/_layout.tsx
 import { Tabs } from 'expo-router';
 import React from 'react';
 import { Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { BlurView } from 'expo-blur';
 
 import { HapticTab } from '@/components/HapticTab';
-import TabBarBackground from '@/components/ui/TabBarBackground';
 import { useLocationTheme } from '@/contexts/LocationContext';
 
 export default function TabLayout() {
@@ -16,35 +15,61 @@ export default function TabLayout() {
     <Tabs
       screenOptions={{
         tabBarActiveTintColor: colors.primary,
-        tabBarInactiveTintColor: colors.onSurface + '60',
+        tabBarInactiveTintColor: colors.textSecondary,
         headerShown: false,
         tabBarButton: HapticTab,
-        tabBarBackground: TabBarBackground,
+        tabBarBackground: () => Platform.OS === 'ios' ? (
+          <BlurView
+            intensity={100}
+            tint="systemChromeMaterial"
+            style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              bottom: 0,
+              right: 0,
+            }}
+          />
+        ) : null,
         tabBarStyle: Platform.select({
           ios: {
             position: 'absolute',
-            backgroundColor: colors.surface + 'F0',
+            backgroundColor: 'rgba(255, 255, 255, 0.9)',
             borderTopWidth: 0,
+            borderTopLeftRadius: 20,
+            borderTopRightRadius: 20,
+            paddingTop: 8,
+            height: 88,
           },
           default: {
             backgroundColor: colors.surface,
             borderTopWidth: 1,
-            borderTopColor: colors.surface + '20',
+            borderTopColor: colors.border,
+            borderTopLeftRadius: 20,
+            borderTopRightRadius: 20,
             elevation: 8,
-            shadowColor: colors.shadowColor,
-            shadowOffset: { width: 0, height: -2 },
-            shadowOpacity: 0.1,
-            shadowRadius: 8,
+            height: 80,
+            paddingTop: 8,
+            paddingBottom: 8,
           },
         }),
+        tabBarLabelStyle: {
+          fontSize: 12,
+          fontWeight: '600',
+          marginBottom: Platform.OS === 'ios' ? 0 : 4,
+        },
       }}>
       
       <Tabs.Screen
         name="index"
         options={{
           title: 'Home',
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="home" size={size || 24} color={color} />
+          tabBarIcon: ({ color, size, focused }) => (
+            <Ionicons 
+              name={focused ? "home" : "home-outline"} 
+              size={size || 24} 
+              color={color} 
+            />
           ),
         }}
       />
@@ -53,8 +78,12 @@ export default function TabLayout() {
         name="search"
         options={{
           title: 'Search',
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="search" size={size || 24} color={color} />
+          tabBarIcon: ({ color, size, focused }) => (
+            <Ionicons 
+              name={focused ? "search" : "search-outline"} 
+              size={size || 24} 
+              color={color} 
+            />
           ),
         }}
       />
@@ -63,8 +92,12 @@ export default function TabLayout() {
         name="bookings"
         options={{
           title: 'Bookings',
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="calendar" size={size || 24} color={color} />
+          tabBarIcon: ({ color, size, focused }) => (
+            <Ionicons 
+              name={focused ? "calendar" : "calendar-outline"} 
+              size={size || 24} 
+              color={color} 
+            />
           ),
         }}
       />
@@ -73,8 +106,12 @@ export default function TabLayout() {
         name="messages"
         options={{
           title: 'Messages',
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="chatbubbles" size={size || 24} color={color} />
+          tabBarIcon: ({ color, size, focused }) => (
+            <Ionicons 
+              name={focused ? "chatbubbles" : "chatbubbles-outline"} 
+              size={size || 24} 
+              color={color} 
+            />
           ),
         }}
       />
@@ -83,8 +120,12 @@ export default function TabLayout() {
         name="profile"
         options={{
           title: 'Profile',
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="person" size={size || 24} color={color} />
+          tabBarIcon: ({ color, size, focused }) => (
+            <Ionicons 
+              name={focused ? "person" : "person-outline"} 
+              size={size || 24} 
+              color={color} 
+            />
           ),
         }}
       />

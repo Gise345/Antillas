@@ -1,5 +1,4 @@
-// File: C:\Antillas\app\(tabs)\profile.tsx
-
+// app/(tabs)/profile.tsx
 import React from 'react';
 import {
   View,
@@ -12,8 +11,9 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { useLocation, useLocationTheme } from '@/contexts/LocationContext';
-import { Typography, Spacing, BorderRadius, Shadows, CommonColors } from '@/constants/Colors';
+import { LinearGradient } from 'expo-linear-gradient';
+import { useLocationTheme } from '@/contexts/LocationContext';
+import { CaribbeanDesign } from '@/constants/CaribbeanColors';
 
 interface ProfileMenuItemProps {
   icon: string;
@@ -22,6 +22,13 @@ interface ProfileMenuItemProps {
   onPress: () => void;
   rightElement?: React.ReactNode;
   isDestructive?: boolean;
+}
+
+interface StatsCardProps {
+  icon: string;
+  title: string;
+  value: string;
+  color: string;
 }
 
 function ProfileMenuItem({ icon, title, subtitle, onPress, rightElement, isDestructive }: ProfileMenuItemProps) {
@@ -33,35 +40,30 @@ function ProfileMenuItem({ icon, title, subtitle, onPress, rightElement, isDestr
       onPress={onPress}
       activeOpacity={0.7}
     >
-      <View style={[styles.menuIcon, { backgroundColor: isDestructive ? colors.error + '10' : colors.background }]}>
+      <View style={[styles.menuIcon, { 
+        backgroundColor: isDestructive ? '#EF4444' + '20' : colors.primary + '20' 
+      }]}>
         <Ionicons 
           name={icon as any} 
           size={20} 
-          color={isDestructive ? colors.error : colors.primary} 
+          color={isDestructive ? '#EF4444' : colors.primary} 
         />
       </View>
       <View style={styles.menuContent}>
-        <Text style={[styles.menuTitle, { color: isDestructive ? colors.error : colors.onSurface }]}>
+        <Text style={[styles.menuTitle, { color: isDestructive ? '#EF4444' : colors.text }]}>
           {title}
         </Text>
         {subtitle && (
-          <Text style={[styles.menuSubtitle, { color: CommonColors.gray[600] }]}>
+          <Text style={[styles.menuSubtitle, { color: colors.textSecondary }]}>
             {subtitle}
           </Text>
         )}
       </View>
       {rightElement || (
-        <Ionicons name="chevron-forward" size={16} color={CommonColors.gray[400]} />
+        <Ionicons name="chevron-forward" size={16} color={colors.textSecondary} />
       )}
     </TouchableOpacity>
   );
-}
-
-interface StatsCardProps {
-  icon: string;
-  title: string;
-  value: string;
-  color: string;
 }
 
 function StatsCard({ icon, title, value, color }: StatsCardProps) {
@@ -72,15 +74,14 @@ function StatsCard({ icon, title, value, color }: StatsCardProps) {
       <View style={[styles.statsIcon, { backgroundColor: color + '20' }]}>
         <Ionicons name={icon as any} size={20} color={color} />
       </View>
-      <Text style={[styles.statsValue, { color: colors.onSurface }]}>{value}</Text>
-      <Text style={[styles.statsTitle, { color: CommonColors.gray[600] }]}>{title}</Text>
+      <Text style={[styles.statsValue, { color: colors.text }]}>{value}</Text>
+      <Text style={[styles.statsTitle, { color: colors.textSecondary }]}>{title}</Text>
     </View>
   );
 }
 
 export default function ProfileScreen() {
   const { colors, location } = useLocationTheme();
-  const { showLocationSelector, resetLocationSelection } = useLocation();
   
   const locationData = {
     cayman: { name: 'Cayman Islands', flag: '🇰🇾' },
@@ -117,7 +118,7 @@ export default function ProfileScreen() {
         { text: 'Cancel', style: 'cancel' },
         { 
           text: 'Change Location', 
-          onPress: () => showLocationSelector()
+          onPress: () => console.log('Switch location')
         },
       ]
     );
@@ -127,33 +128,33 @@ export default function ProfileScreen() {
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         {/* Profile Header */}
-        <View style={[styles.profileHeader, { backgroundColor: colors.surface }]}>
-          <View style={styles.profileImageContainer}>
-            <Image
-              source={{ uri: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150' }}
-              style={styles.profileImage}
-            />
-            <TouchableOpacity style={[styles.editImageButton, { backgroundColor: colors.primary }]}>
-              <Ionicons name="camera" size={16} color="white" />
+        <LinearGradient colors={colors.gradient as [string, string, ...string[]]} style={styles.profileHeader}>
+          <View style={styles.headerContent}>
+            <View style={styles.profileImageContainer}>
+              <Image
+                source={{ uri: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face' }}
+                style={styles.profileImage}
+              />
+              <TouchableOpacity style={styles.editImageButton}>
+                <Ionicons name="camera" size={16} color="white" />
+              </TouchableOpacity>
+            </View>
+            
+            <View style={styles.profileInfo}>
+              <Text style={styles.profileName}>John Doe</Text>
+              <Text style={styles.profileEmail}>john.doe@email.com</Text>
+              <View style={styles.locationBadge}>
+                <Text style={styles.locationBadgeText}>
+                  {locationData[location].flag} {locationData[location].name}
+                </Text>
+              </View>
+            </View>
+            
+            <TouchableOpacity style={styles.editButton}>
+              <Ionicons name="create-outline" size={20} color="white" />
             </TouchableOpacity>
           </View>
-          
-          <View style={styles.profileInfo}>
-            <Text style={[styles.profileName, { color: colors.onSurface }]}>John Doe</Text>
-            <Text style={[styles.profileEmail, { color: CommonColors.gray[600] }]}>
-              john.doe@email.com
-            </Text>
-            <View style={styles.locationBadge}>
-              <Text style={[styles.locationBadgeText, { color: colors.primary }]}>
-                {locationData[location].flag} {locationData[location].name}
-              </Text>
-            </View>
-          </View>
-          
-          <TouchableOpacity style={styles.editButton}>
-            <Ionicons name="create-outline" size={20} color={colors.primary} />
-          </TouchableOpacity>
-        </View>
+        </LinearGradient>
 
         {/* Stats */}
         <View style={styles.statsContainer}>
@@ -167,42 +168,42 @@ export default function ProfileScreen() {
             icon="star"
             title="Reviews Given"
             value="8"
-            color={colors.warning}
+            color="#FFD700"
           />
           <StatsCard
             icon="heart"
             title="Favorites"
             value="24"
-            color={colors.error}
+            color="#EF4444"
           />
         </View>
 
         {/* Menu Sections */}
         <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: colors.onSurface }]}>Account</Text>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>Account</Text>
           <View style={styles.menuGroup}>
             <ProfileMenuItem
               icon="person-outline"
               title="Personal Information"
-              subtitle="Update your details"
+              subtitle="Update your details and preferences"
               onPress={() => {}}
             />
             <ProfileMenuItem
               icon="card-outline"
               title="Payment Methods"
-              subtitle="Manage cards and payments"
+              subtitle="Manage cards and payment options"
               onPress={() => {}}
             />
             <ProfileMenuItem
               icon="location-outline"
               title="Addresses"
-              subtitle="Manage saved addresses"
+              subtitle="Manage your saved addresses"
               onPress={() => {}}
             />
             <ProfileMenuItem
               icon="shield-checkmark-outline"
               title="Verification"
-              subtitle="Verify your identity"
+              subtitle="Verify your identity for trust"
               onPress={() => {}}
               rightElement={
                 <View style={[styles.verificationBadge, { backgroundColor: colors.success }]}>
@@ -214,12 +215,12 @@ export default function ProfileScreen() {
         </View>
 
         <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: colors.onSurface }]}>Preferences</Text>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>Preferences</Text>
           <View style={styles.menuGroup}>
             <ProfileMenuItem
               icon="notifications-outline"
               title="Notifications"
-              subtitle="Push, email, SMS preferences"
+              subtitle="Push, email, and SMS preferences"
               onPress={() => {}}
             />
             <ProfileMenuItem
@@ -231,7 +232,7 @@ export default function ProfileScreen() {
             <ProfileMenuItem
               icon="moon-outline"
               title="Dark Mode"
-              subtitle="System default"
+              subtitle="Follow system setting"
               onPress={() => {}}
             />
             <ProfileMenuItem
@@ -244,7 +245,7 @@ export default function ProfileScreen() {
         </View>
 
         <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: colors.onSurface }]}>Support</Text>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>Support & Legal</Text>
           <View style={styles.menuGroup}>
             <ProfileMenuItem
               icon="help-circle-outline"
@@ -255,37 +256,43 @@ export default function ProfileScreen() {
             <ProfileMenuItem
               icon="chatbubble-outline"
               title="Contact Support"
-              subtitle="Get help from our team"
+              subtitle="Get help from our Caribbean team"
               onPress={() => {}}
             />
             <ProfileMenuItem
               icon="document-text-outline"
               title="Terms & Privacy"
-              subtitle="Legal information"
+              subtitle="Legal information and policies"
               onPress={() => {}}
             />
             <ProfileMenuItem
               icon="star-outline"
-              title="Rate the App"
-              subtitle="Share your feedback"
+              title="Rate Antillas"
+              subtitle="Share your feedback with us"
               onPress={() => {}}
             />
           </View>
         </View>
 
         <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: colors.onSurface }]}>Business</Text>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>Business</Text>
           <View style={styles.menuGroup}>
             <ProfileMenuItem
               icon="briefcase-outline"
-              title="Become a Provider"
-              subtitle="Offer your services"
+              title="Become a Service Provider"
+              subtitle="Start offering your services on Antillas"
               onPress={() => {}}
             />
             <ProfileMenuItem
               icon="analytics-outline"
-              title="Business Dashboard"
-              subtitle="Manage your business"
+              title="Provider Dashboard"
+              subtitle="Manage your business profile"
+              onPress={() => {}}
+            />
+            <ProfileMenuItem
+              icon="people-outline"
+              title="Refer Friends"
+              subtitle="Earn rewards for referrals"
               onPress={() => {}}
             />
           </View>
@@ -293,11 +300,12 @@ export default function ProfileScreen() {
 
         {/* Danger Zone */}
         <View style={[styles.section, styles.lastSection]}>
-          <Text style={[styles.sectionTitle, { color: colors.error }]}>Account Actions</Text>
+          <Text style={[styles.sectionTitle, { color: '#EF4444' }]}>Account Actions</Text>
           <View style={styles.menuGroup}>
             <ProfileMenuItem
               icon="log-out-outline"
               title="Logout"
+              subtitle="Sign out of your account"
               onPress={handleLogout}
               isDestructive
             />
@@ -311,10 +319,14 @@ export default function ProfileScreen() {
           </View>
         </View>
 
-        {/* App Version */}
-        <View style={styles.appVersion}>
-          <Text style={[styles.versionText, { color: CommonColors.gray[500] }]}>
-            Antillas v1.0.0
+        {/* App Info */}
+        <View style={styles.appInfo}>
+          <Text style={[styles.appName, { color: colors.primary }]}>Antillas</Text>
+          <Text style={[styles.appTagline, { color: colors.textSecondary }]}>
+            Connecting Caribbean Excellence
+          </Text>
+          <Text style={[styles.versionText, { color: colors.textSecondary }]}>
+            Version 1.0.0
           </Text>
         </View>
       </ScrollView>
@@ -330,21 +342,24 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   profileHeader: {
+    padding: CaribbeanDesign.spacing.xl,
+    borderBottomLeftRadius: CaribbeanDesign.borderRadius.xl,
+    borderBottomRightRadius: CaribbeanDesign.borderRadius.xl,
+  },
+  headerContent: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: Spacing.lg,
-    margin: Spacing.lg,
-    borderRadius: BorderRadius.xl,
-    gap: Spacing.md,
-    ...Shadows.sm,
+    gap: CaribbeanDesign.spacing.lg,
   },
   profileImageContainer: {
     position: 'relative',
   },
   profileImage: {
-    width: 72,
-    height: 72,
-    borderRadius: BorderRadius.full,
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    borderWidth: 3,
+    borderColor: 'white',
   },
   editImageButton: {
     position: 'absolute',
@@ -353,6 +368,7 @@ const styles = StyleSheet.create({
     width: 28,
     height: 28,
     borderRadius: 14,
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 2,
@@ -360,112 +376,125 @@ const styles = StyleSheet.create({
   },
   profileInfo: {
     flex: 1,
-    gap: Spacing.xs,
+    gap: 4,
   },
   profileName: {
-    ...Typography.heading3,
-    fontWeight: '600',
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: 'white',
   },
   profileEmail: {
-    ...Typography.body2,
+    fontSize: 16,
+    color: 'rgba(255, 255, 255, 0.9)',
   },
   locationBadge: {
     alignSelf: 'flex-start',
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.xs,
-    backgroundColor: CommonColors.gray[100],
-    borderRadius: BorderRadius.md,
-    marginTop: Spacing.xs,
+    paddingHorizontal: CaribbeanDesign.spacing.md,
+    paddingVertical: 4,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    borderRadius: CaribbeanDesign.borderRadius.md,
+    marginTop: CaribbeanDesign.spacing.xs,
   },
   locationBadgeText: {
-    ...Typography.caption,
+    fontSize: 12,
     fontWeight: '600',
+    color: 'white',
   },
   editButton: {
-    padding: Spacing.sm,
+    padding: CaribbeanDesign.spacing.sm,
   },
   statsContainer: {
     flexDirection: 'row',
-    paddingHorizontal: Spacing.lg,
-    marginBottom: Spacing.lg,
-    gap: Spacing.md,
+    paddingHorizontal: CaribbeanDesign.spacing.lg,
+    paddingVertical: CaribbeanDesign.spacing.xl,
+    gap: CaribbeanDesign.spacing.md,
   },
   statsCard: {
     flex: 1,
     alignItems: 'center',
-    padding: Spacing.lg,
-    borderRadius: BorderRadius.lg,
-    gap: Spacing.sm,
-    ...Shadows.sm,
+    padding: CaribbeanDesign.spacing.lg,
+    borderRadius: CaribbeanDesign.borderRadius.lg,
+    gap: CaribbeanDesign.spacing.sm,
+    ...CaribbeanDesign.shadows.sm,
   },
   statsIcon: {
     width: 40,
     height: 40,
-    borderRadius: BorderRadius.full,
+    borderRadius: 20,
     alignItems: 'center',
     justifyContent: 'center',
   },
   statsValue: {
-    ...Typography.heading3,
-    fontWeight: '700',
+    fontSize: 20,
+    fontWeight: 'bold',
   },
   statsTitle: {
-    ...Typography.caption,
+    fontSize: 12,
     textAlign: 'center',
   },
   section: {
-    marginBottom: Spacing.xl,
-    paddingHorizontal: Spacing.lg,
+    marginBottom: CaribbeanDesign.spacing.xl,
+    paddingHorizontal: CaribbeanDesign.spacing.lg,
   },
   lastSection: {
-    marginBottom: Spacing.xxxl,
+    marginBottom: CaribbeanDesign.spacing.xxl,
   },
   sectionTitle: {
-    ...Typography.heading4,
-    fontWeight: '600',
-    marginBottom: Spacing.md,
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginBottom: CaribbeanDesign.spacing.md,
   },
   menuGroup: {
-    gap: Spacing.xs,
+    gap: CaribbeanDesign.spacing.xs,
   },
   menuItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: Spacing.md,
-    borderRadius: BorderRadius.lg,
-    gap: Spacing.md,
-    ...Shadows.sm,
+    padding: CaribbeanDesign.spacing.md,
+    borderRadius: CaribbeanDesign.borderRadius.lg,
+    gap: CaribbeanDesign.spacing.md,
+    ...CaribbeanDesign.shadows.sm,
   },
   menuIcon: {
     width: 40,
     height: 40,
-    borderRadius: BorderRadius.md,
+    borderRadius: 20,
     alignItems: 'center',
     justifyContent: 'center',
   },
   menuContent: {
     flex: 1,
-    gap: Spacing.xs,
+    gap: 2,
   },
   menuTitle: {
-    ...Typography.body1,
-    fontWeight: '500',
+    fontSize: 16,
+    fontWeight: '600',
   },
   menuSubtitle: {
-    ...Typography.body2,
+    fontSize: 14,
   },
   verificationBadge: {
     width: 24,
     height: 24,
-    borderRadius: BorderRadius.full,
+    borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  appVersion: {
+  appInfo: {
     alignItems: 'center',
-    paddingBottom: Spacing.xl,
+    paddingVertical: CaribbeanDesign.spacing.xl,
+    gap: 4,
+  },
+  appName: {
+    fontSize: 24,
+    fontWeight: 'bold',
+  },
+  appTagline: {
+    fontSize: 14,
+    fontStyle: 'italic',
   },
   versionText: {
-    ...Typography.caption,
+    fontSize: 12,
+    marginTop: CaribbeanDesign.spacing.sm,
   },
 });

@@ -1,6 +1,8 @@
+// contexts/LocationContext.tsx
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { LocationTheme } from '@/constants/Colors';
+import { LocationTheme, getLocationTheme } from '@/constants/CaribbeanColors';
+import { useColorScheme } from '@/hooks/useColorScheme';
 
 interface LocationContextType {
   currentLocation: LocationTheme;
@@ -24,8 +26,12 @@ export function LocationProvider({ children }: LocationProviderProps) {
     setCurrentLocation(location);
     setIsLocationSelected(true);
     // Persist location selection
-    await AsyncStorage.setItem('selectedLocation', location);
-    await AsyncStorage.setItem('locationSelected', 'true');
+    try {
+      await AsyncStorage.setItem('selectedLocation', location);
+      await AsyncStorage.setItem('locationSelected', 'true');
+    } catch (error) {
+      console.log('Error saving location:', error);
+    }
   };
 
   const showLocationSelector = () => {
@@ -34,8 +40,12 @@ export function LocationProvider({ children }: LocationProviderProps) {
 
   const resetLocationSelection = async () => {
     setIsLocationSelected(false);
-    await AsyncStorage.removeItem('selectedLocation');
-    await AsyncStorage.removeItem('locationSelected');
+    try {
+      await AsyncStorage.removeItem('selectedLocation');
+      await AsyncStorage.removeItem('locationSelected');
+    } catch (error) {
+      console.log('Error clearing location:', error);
+    }
   };
 
   // Load saved location on app start
@@ -83,10 +93,10 @@ export function useLocation() {
 // Custom hook for getting location-specific theme colors
 export function useLocationTheme() {
   const { currentLocation } = useLocation();
-  const { Colors, getLocationTheme } = require('@/constants/Colors');
+  const colorScheme = useColorScheme();
   
   return {
-    colors: getLocationTheme(currentLocation),
+    colors: getLocationTheme(currentLocation, colorScheme || 'light'),
     location: currentLocation,
   };
 }

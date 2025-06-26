@@ -1,4 +1,4 @@
-// app/(tabs)/index.tsx
+// screens/HomeScreen.tsx
 import React, { useState } from 'react';
 import {
   View,
@@ -9,16 +9,20 @@ import {
   TextInput,
   Image,
   Dimensions,
-  Modal,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { useLocationTheme } from '@/contexts/LocationContext';
-import { CaribbeanDesign, ServiceCategoryColors } from '@/constants/CaribbeanColors';
-import AISearchScreen from '@/components/AISearchScreen';
+import { CaymanTheme, JamaicaTheme, CaribbeanDesign, ServiceCategoryColors, LocationTheme } from '@/constants/CaribbeanColors';
 
 const { width } = Dimensions.get('window');
+
+interface HomeScreenProps {
+  location: LocationTheme;
+  onLocationChange: () => void;
+  onOpenAISearch: () => void;
+  onOpenBooking: (providerId: string) => void;
+}
 
 interface ServiceCategoryProps {
   icon: string;
@@ -40,49 +44,48 @@ interface FeaturedProviderProps {
 }
 
 function ServiceCategory({ icon, title, count, color, onPress }: ServiceCategoryProps) {
-  const { colors } = useLocationTheme();
-  
   return (
     <TouchableOpacity style={styles.categoryCard} onPress={onPress} activeOpacity={0.8}>
       <View style={[styles.categoryIcon, { backgroundColor: color + '20' }]}>
         <Ionicons name={icon as any} size={24} color={color} />
       </View>
-      <Text style={[styles.categoryTitle, { color: colors.text }]}>{title}</Text>
-      <Text style={[styles.categoryCount, { color }]}>{count}</Text>
+      <Text style={styles.categoryTitle}>{title}</Text>
+      <Text style={[styles.categoryCount, { color }]}>{count} services</Text>
     </TouchableOpacity>
   );
 }
 
 function FeaturedProvider({ name, service, rating, image, isVerified, isOnline, location }: FeaturedProviderProps) {
-  const { colors } = useLocationTheme();
+  const [currentTheme, setCurrentTheme] = useState<LocationTheme>('cayman');
+  const theme = currentTheme === 'cayman' ? CaymanTheme.light : JamaicaTheme.light;
   
   return (
-    <TouchableOpacity style={[styles.providerCard, { backgroundColor: colors.surface }]} activeOpacity={0.8}>
+    <TouchableOpacity style={[styles.providerCard, { backgroundColor: theme.surface }]} activeOpacity={0.8}>
       <View style={styles.providerHeader}>
         <View style={styles.providerImageContainer}>
           <Image source={{ uri: image }} style={styles.providerImage} />
-          {isOnline && <View style={[styles.onlineIndicator, { backgroundColor: colors.success }]} />}
+          {isOnline && <View style={[styles.onlineIndicator, { backgroundColor: theme.success }]} />}
           {isVerified && (
-            <View style={[styles.verifiedBadge, { backgroundColor: colors.primary }]}>
+            <View style={[styles.verifiedBadge, { backgroundColor: theme.primary }]}>
               <Ionicons name="checkmark" size={12} color="white" />
             </View>
           )}
         </View>
         <TouchableOpacity style={styles.favoriteButton}>
-          <Ionicons name="heart-outline" size={16} color={colors.primary} />
+          <Ionicons name="heart-outline" size={16} color={theme.primary} />
         </TouchableOpacity>
       </View>
       
       <View style={styles.providerInfo}>
-        <Text style={[styles.providerName, { color: colors.text }]} numberOfLines={1}>{name}</Text>
-        <Text style={[styles.providerService, { color: colors.primary }]} numberOfLines={1}>{service}</Text>
+        <Text style={[styles.providerName, { color: theme.text }]} numberOfLines={1}>{name}</Text>
+        <Text style={[styles.providerService, { color: theme.primary }]} numberOfLines={1}>{service}</Text>
         
         <View style={styles.providerStats}>
           <View style={styles.ratingContainer}>
             <Ionicons name="star" size={14} color="#FFD700" />
-            <Text style={[styles.rating, { color: colors.text }]}>{rating}</Text>
+            <Text style={[styles.rating, { color: theme.text }]}>{rating}</Text>
           </View>
-          <Text style={[styles.providerLocation, { color: colors.textSecondary }]} numberOfLines={1}>
+          <Text style={[styles.providerLocation, { color: theme.textSecondary }]} numberOfLines={1}>
             {location}
           </Text>
         </View>
@@ -91,10 +94,9 @@ function FeaturedProvider({ name, service, rating, image, isVerified, isOnline, 
   );
 }
 
-export default function HomeScreen() {
-  const { colors, location } = useLocationTheme();
+export default function HomeScreen({ location, onLocationChange, onOpenAISearch, onOpenBooking }: HomeScreenProps) {
+  const theme = location === 'cayman' ? CaymanTheme.light : JamaicaTheme.light;
   const [searchQuery, setSearchQuery] = useState('');
-  const [showAISearch, setShowAISearch] = useState(false);
   
   const locationData = {
     cayman: { name: 'Cayman Islands', flag: '🇰🇾', greeting: 'Welcome to Paradise' },
@@ -146,22 +148,23 @@ export default function HomeScreen() {
   ];
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+    <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
       {/* Header with Gradient */}
       <LinearGradient
-        colors={colors.gradient as [string, string, ...string[]]}
+        colors={theme.gradient as [string, string, ...string[]]}
         style={styles.header}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
       >
         <View style={styles.headerTop}>
-          <View style={styles.locationSelector}>
+          <TouchableOpacity style={styles.locationSelector} onPress={onLocationChange}>
             <Text style={styles.locationFlag}>{locationData[location].flag}</Text>
             <View>
               <Text style={styles.locationName}>{locationData[location].name}</Text>
               <Text style={styles.locationGreeting}>{locationData[location].greeting}</Text>
             </View>
-          </View>
+            <Ionicons name="chevron-down" size={16} color="white" />
+          </TouchableOpacity>
           
           <View style={styles.headerActions}>
             <TouchableOpacity style={styles.headerButton}>
@@ -184,18 +187,15 @@ export default function HomeScreen() {
         {/* Search Bar */}
         <View style={styles.searchContainer}>
           <View style={styles.searchBar}>
-            <Ionicons name="search" size={20} color={colors.textSecondary} />
+            <Ionicons name="search" size={20} color={theme.textSecondary} />
             <TextInput
               style={styles.searchInput}
               placeholder="Search services or ask our AI assistant..."
-              placeholderTextColor={colors.textSecondary}
+              placeholderTextColor={theme.textSecondary}
               value={searchQuery}
               onChangeText={setSearchQuery}
             />
-            <TouchableOpacity 
-              style={[styles.aiButton, { backgroundColor: colors.accent }]}
-              onPress={() => setShowAISearch(true)}
-            >
+            <TouchableOpacity style={[styles.aiButton, { backgroundColor: theme.accent }]} onPress={onOpenAISearch}>
               <Ionicons name="chatbubble-ellipses" size={18} color="white" />
             </TouchableOpacity>
           </View>
@@ -206,12 +206,12 @@ export default function HomeScreen() {
         {/* Quick Actions */}
         <View style={styles.section}>
           <View style={styles.quickActions}>
-            <TouchableOpacity style={[styles.quickAction, { backgroundColor: colors.primary }]}>
+            <TouchableOpacity style={[styles.quickAction, { backgroundColor: theme.primary }]}>
               <Ionicons name="flash" size={20} color="white" />
               <Text style={styles.quickActionText}>Urgent Service</Text>
             </TouchableOpacity>
             
-            <TouchableOpacity style={[styles.quickAction, { backgroundColor: colors.secondary }]}>
+            <TouchableOpacity style={[styles.quickAction, { backgroundColor: theme.secondary }]}>
               <Ionicons name="calendar" size={20} color="white" />
               <Text style={styles.quickActionText}>Schedule Later</Text>
             </TouchableOpacity>
@@ -221,9 +221,9 @@ export default function HomeScreen() {
         {/* Service Categories */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <Text style={[styles.sectionTitle, { color: colors.text }]}>Popular Services</Text>
+            <Text style={[styles.sectionTitle, { color: theme.text }]}>Popular Services</Text>
             <TouchableOpacity>
-              <Text style={[styles.seeAllText, { color: colors.primary }]}>See All</Text>
+              <Text style={[styles.seeAllText, { color: theme.primary }]}>See All</Text>
             </TouchableOpacity>
           </View>
           
@@ -248,15 +248,21 @@ export default function HomeScreen() {
         {/* Featured Providers */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <Text style={[styles.sectionTitle, { color: colors.text }]}>Top Rated Professionals</Text>
+            <Text style={[styles.sectionTitle, { color: theme.text }]}>Top Rated Professionals</Text>
             <TouchableOpacity>
-              <Text style={[styles.seeAllText, { color: colors.primary }]}>See All</Text>
+              <Text style={[styles.seeAllText, { color: theme.primary }]}>See All</Text>
             </TouchableOpacity>
           </View>
           
           <ScrollView horizontal showsHorizontalScrollIndicator={false}>
             {featuredProviders.map((provider) => (
-              <FeaturedProvider key={provider.id} {...provider} />
+              <TouchableOpacity 
+                key={provider.id} 
+                onPress={() => onOpenBooking(provider.id)}
+                activeOpacity={0.8}
+              >
+                <FeaturedProvider {...provider} />
+              </TouchableOpacity>
             ))}
           </ScrollView>
         </View>
@@ -264,12 +270,12 @@ export default function HomeScreen() {
         {/* Caribbean Spotlight */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <Text style={[styles.sectionTitle, { color: colors.text }]}>Caribbean Spotlight</Text>
+            <Text style={[styles.sectionTitle, { color: theme.text }]}>Caribbean Spotlight</Text>
           </View>
           
-          <View style={[styles.spotlightCard, { backgroundColor: colors.surface }]}>
+          <View style={[styles.spotlightCard, { backgroundColor: theme.surface }]}>
             <LinearGradient
-              colors={[colors.primary + '20', colors.secondary + '20']}
+              colors={[theme.primary + '20', theme.secondary + '20']}
               style={styles.spotlightGradient}
             >
               <View style={styles.spotlightContent}>
@@ -277,10 +283,10 @@ export default function HomeScreen() {
                   <Text style={styles.spotlightEmoji}>🏝️</Text>
                 </View>
                 <View style={styles.spotlightText}>
-                  <Text style={[styles.spotlightTitle, { color: colors.text }]}>
+                  <Text style={[styles.spotlightTitle, { color: theme.text }]}>
                     Supporting Local Caribbean Businesses
                   </Text>
-                  <Text style={[styles.spotlightDescription, { color: colors.textSecondary }]}>
+                  <Text style={[styles.spotlightDescription, { color: theme.textSecondary }]}>
                     Every service booked helps strengthen our island communities and keeps Caribbean talent thriving at home.
                   </Text>
                 </View>
@@ -291,40 +297,28 @@ export default function HomeScreen() {
 
         {/* Recent Activity */}
         <View style={[styles.section, styles.lastSection]}>
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>Your Recent Activity</Text>
+          <Text style={[styles.sectionTitle, { color: theme.text }]}>Your Recent Activity</Text>
           
-          <View style={[styles.activityCard, { backgroundColor: colors.surface }]}>
+          <View style={[styles.activityCard, { backgroundColor: theme.surface }]}>
             <View style={styles.activityHeader}>
-              <View style={[styles.activityIcon, { backgroundColor: colors.success + '20' }]}>
-                <Ionicons name="checkmark-circle" size={20} color={colors.success} />
+              <View style={[styles.activityIcon, { backgroundColor: theme.success + '20' }]}>
+                <Ionicons name="checkmark-circle" size={20} color={theme.success} />
               </View>
               <View style={styles.activityInfo}>
-                <Text style={[styles.activityTitle, { color: colors.text }]}>
+                <Text style={[styles.activityTitle, { color: theme.text }]}>
                   Service Completed
                 </Text>
-                <Text style={[styles.activityDescription, { color: colors.textSecondary }]}>
+                <Text style={[styles.activityDescription, { color: theme.textSecondary }]}>
                   Plumbing repair by Marcus Johnson • 2 days ago
                 </Text>
               </View>
-              <TouchableOpacity style={[styles.reviewButton, { backgroundColor: colors.primary + '20' }]}>
-                <Text style={[styles.reviewButtonText, { color: colors.primary }]}>Review</Text>
+              <TouchableOpacity style={[styles.reviewButton, { backgroundColor: theme.primary + '20' }]}>
+                <Text style={[styles.reviewButtonText, { color: theme.primary }]}>Review</Text>
               </TouchableOpacity>
             </View>
           </View>
         </View>
       </ScrollView>
-
-      {/* AI Search Modal */}
-      <Modal
-        visible={showAISearch}
-        animationType="slide"
-        presentationStyle="fullScreen"
-      >
-        <AISearchScreen 
-          location={location} 
-          onClose={() => setShowAISearch(false)} 
-        />
-      </Modal>
     </SafeAreaView>
   );
 }
@@ -492,6 +486,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     textAlign: 'center',
     marginBottom: 2,
+    color: '#1A202C',
   },
   categoryCount: {
     fontSize: 10,

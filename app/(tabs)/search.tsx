@@ -1,5 +1,4 @@
-// File: C:\Antillas\app\(tabs)\search.tsx
-
+// app/(tabs)/search.tsx
 import React, { useState } from 'react';
 import {
   View,
@@ -8,270 +7,232 @@ import {
   TouchableOpacity,
   ScrollView,
   StyleSheet,
-  Dimensions,
+  Modal,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useLocationTheme } from '@/contexts/LocationContext';
-import { Typography, Spacing, BorderRadius, Shadows, CommonColors } from '@/constants/Colors';
+import { CaribbeanDesign, ServiceCategoryColors } from '@/constants/CaribbeanColors';
+import AISearchScreen from '@/components/AISearchScreen';
 
-const { width } = Dimensions.get('window');
-
-interface SearchCategoryProps {
+interface ServiceCategoryProps {
   icon: string;
   title: string;
+  count: string;
+  color: string;
   onPress: () => void;
 }
 
-interface RecentSearchProps {
-  query: string;
+interface QuickFilterProps {
+  label: string;
+  isSelected: boolean;
   onPress: () => void;
-  onRemove: () => void;
 }
 
-function SearchCategory({ icon, title, onPress }: SearchCategoryProps) {
+function ServiceCategory({ icon, title, count, color, onPress }: ServiceCategoryProps) {
   const { colors } = useLocationTheme();
   
   return (
-    <TouchableOpacity 
-      style={[styles.categoryItem, { backgroundColor: colors.surface }]} 
-      onPress={onPress}
-      activeOpacity={0.7}
-    >
-      <View style={[styles.categoryIcon, { backgroundColor: colors.background }]}>
-        <Ionicons name={icon as any} size={20} color={colors.primary} />
+    <TouchableOpacity style={[styles.categoryCard, { backgroundColor: colors.surface }]} onPress={onPress}>
+      <View style={[styles.categoryIcon, { backgroundColor: color + '20' }]}>
+        <Ionicons name={icon as any} size={24} color={color} />
       </View>
-      <Text style={[styles.categoryText, { color: colors.onSurface }]}>{title}</Text>
-      <Ionicons name="chevron-forward" size={16} color={CommonColors.gray[400]} />
+      <Text style={[styles.categoryTitle, { color: colors.text }]}>{title}</Text>
+      <Text style={[styles.categoryCount, { color }]}>{count}</Text>
     </TouchableOpacity>
   );
 }
 
-function RecentSearch({ query, onPress, onRemove }: RecentSearchProps) {
+function QuickFilter({ label, isSelected, onPress }: QuickFilterProps) {
   const { colors } = useLocationTheme();
   
   return (
-    <TouchableOpacity 
-      style={styles.recentItem} 
+    <TouchableOpacity
+      style={[
+        styles.filterChip,
+        {
+          backgroundColor: isSelected ? colors.primary : colors.surface,
+          borderColor: isSelected ? colors.primary : colors.border,
+        }
+      ]}
       onPress={onPress}
-      activeOpacity={0.7}
     >
-      <Ionicons name="time-outline" size={16} color={CommonColors.gray[500]} />
-      <Text style={[styles.recentText, { color: colors.onSurface }]}>{query}</Text>
-      <TouchableOpacity onPress={onRemove} style={styles.removeButton}>
-        <Ionicons name="close" size={16} color={CommonColors.gray[400]} />
-      </TouchableOpacity>
+      <Text style={[
+        styles.filterText,
+        { color: isSelected ? 'white' : colors.text }
+      ]}>
+        {label}
+      </Text>
     </TouchableOpacity>
   );
 }
 
 export default function SearchScreen() {
-  const { colors } = useLocationTheme();
+  const { colors, location } = useLocationTheme();
   const [searchQuery, setSearchQuery] = useState('');
-  const [isAIMode, setIsAIMode] = useState(false);
+  const [showAISearch, setShowAISearch] = useState(false);
+  const [selectedFilters, setSelectedFilters] = useState<string[]>([]);
 
-  const popularCategories = [
-    { icon: 'home-outline', title: 'Home Cleaning' },
-    { icon: 'construct-outline', title: 'Plumbing' },
-    { icon: 'car-outline', title: 'Auto Repair' },
-    { icon: 'cut-outline', title: 'Hair & Beauty' },
-    { icon: 'camera-outline', title: 'Photography' },
-    { icon: 'fitness-outline', title: 'Personal Training' },
-    { icon: 'restaurant-outline', title: 'Catering' },
-    { icon: 'leaf-outline', title: 'Landscaping' },
+  const serviceCategories = [
+    { icon: 'home-outline', title: 'Home Services', count: '150+', color: ServiceCategoryColors.home },
+    { icon: 'car-outline', title: 'Automotive', count: '89+', color: ServiceCategoryColors.automotive },
+    { icon: 'briefcase-outline', title: 'Professional', count: '120+', color: ServiceCategoryColors.professional },
+    { icon: 'construct-outline', title: 'Construction', count: '95+', color: ServiceCategoryColors.creative },
+    { icon: 'camera-outline', title: 'Creative', count: '67+', color: ServiceCategoryColors.events },
+    { icon: 'fitness-outline', title: 'Health & Wellness', count: '78+', color: ServiceCategoryColors.health },
+    { icon: 'restaurant-outline', title: 'Food & Catering', count: '45+', color: ServiceCategoryColors.food },
+    { icon: 'boat-outline', title: 'Marine Services', count: '32+', color: ServiceCategoryColors.marine },
+  ];
+
+  const quickFilters = [
+    'Available Today',
+    'Top Rated',
+    'Verified Only',
+    'Emergency Service',
+    'Budget Friendly',
+    'Premium Service'
   ];
 
   const recentSearches = [
     'Plumber near me',
+    'House cleaning',
     'Wedding photographer',
-    'House cleaning service',
-    'AC repair technician',
+    'Car mechanic',
+    'Pool maintenance'
   ];
 
-  const aiSuggestions = [
-    "I need someone to fix my leaky faucet",
-    "Looking for a reliable house cleaner",
-    "Need a photographer for my wedding",
-    "Car won't start, need a mechanic",
-  ];
+  const toggleFilter = (filter: string) => {
+    setSelectedFilters(prev => 
+      prev.includes(filter) 
+        ? prev.filter(f => f !== filter)
+        : [...prev, filter]
+    );
+  };
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       {/* Header */}
-      <View style={styles.header}>
-        <Text style={[styles.headerTitle, { color: colors.onSurface }]}>
-          {isAIMode ? 'Ask AI Assistant' : 'Search Services'}
-        </Text>
-        <TouchableOpacity 
-          style={[styles.aiToggle, { backgroundColor: isAIMode ? colors.primary : colors.surface }]}
-          onPress={() => setIsAIMode(!isAIMode)}
-        >
-          <Ionicons 
-            name="chatbox" 
-            size={20} 
-            color={isAIMode ? 'white' : colors.primary} 
-          />
-        </TouchableOpacity>
-      </View>
+      <LinearGradient colors={colors.gradient as [string, string, ...string[]]} style={styles.header}>
+        <View style={styles.headerContent}>
+          <Text style={styles.headerTitle}>Discover Services</Text>
+          <Text style={styles.headerSubtitle}>
+            Find trusted professionals in {location === 'cayman' ? 'Cayman Islands' : 'Jamaica'}
+          </Text>
+        </View>
 
-      {/* Search Bar */}
-      <View style={[styles.searchContainer, { backgroundColor: colors.surface }]}>
-        <Ionicons name="search" size={20} color={CommonColors.gray[500]} />
-        <TextInput
-          style={[styles.searchInput, { color: colors.onSurface }]}
-          placeholder={isAIMode ? "Describe what you need..." : "Search services, providers..."}
-          placeholderTextColor={CommonColors.gray[500]}
-          value={searchQuery}
-          onChangeText={setSearchQuery}
-          multiline={isAIMode}
-          numberOfLines={isAIMode ? 3 : 1}
-        />
-        {searchQuery.length > 0 && (
-          <TouchableOpacity onPress={() => setSearchQuery('')}>
-            <Ionicons name="close-circle" size={20} color={CommonColors.gray[400]} />
-          </TouchableOpacity>
-        )}
-        <TouchableOpacity style={[styles.micButton, { backgroundColor: colors.primary }]}>
-          <Ionicons name="mic" size={18} color="white" />
-        </TouchableOpacity>
-      </View>
+        {/* Search Bar */}
+        <View style={styles.searchContainer}>
+          <View style={styles.searchBar}>
+            <Ionicons name="search" size={20} color={colors.textSecondary} />
+            <TextInput
+              style={[styles.searchInput, { color: colors.text }]}
+              placeholder="Search services or describe your needs..."
+              placeholderTextColor={colors.textSecondary}
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+            />
+            <TouchableOpacity 
+              style={[styles.aiButton, { backgroundColor: colors.accent }]}
+              onPress={() => setShowAISearch(true)}
+            >
+              <Ionicons name="chatbubble-ellipses" size={18} color="white" />
+            </TouchableOpacity>
+          </View>
+        </View>
+      </LinearGradient>
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        {!isAIMode ? (
-          <>
-            {/* Popular Categories */}
-            <View style={styles.section}>
-              <Text style={[styles.sectionTitle, { color: colors.onSurface }]}>
-                Popular Categories
-              </Text>
-              <View style={styles.categoriesGrid}>
-                {popularCategories.map((category, index) => (
-                  <SearchCategory
-                    key={index}
-                    icon={category.icon}
-                    title={category.title}
-                    onPress={() => {}}
-                  />
-                ))}
-              </View>
+        {/* Quick Filters */}
+        <View style={styles.section}>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>Quick Filters</Text>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.filtersScroll}>
+            <View style={styles.filtersContainer}>
+              {quickFilters.map((filter) => (
+                <QuickFilter
+                  key={filter}
+                  label={filter}
+                  isSelected={selectedFilters.includes(filter)}
+                  onPress={() => toggleFilter(filter)}
+                />
+              ))}
             </View>
+          </ScrollView>
+        </View>
 
-            {/* Recent Searches */}
-            {recentSearches.length > 0 && (
-              <View style={styles.section}>
-                <View style={styles.sectionHeader}>
-                  <Text style={[styles.sectionTitle, { color: colors.onSurface }]}>
-                    Recent Searches
-                  </Text>
-                  <TouchableOpacity>
-                    <Text style={[styles.clearAll, { color: colors.primary }]}>Clear All</Text>
-                  </TouchableOpacity>
-                </View>
-                {recentSearches.map((search, index) => (
-                  <RecentSearch
-                    key={index}
-                    query={search}
-                    onPress={() => setSearchQuery(search)}
-                    onRemove={() => {}}
-                  />
-                ))}
-              </View>
-            )}
-          </>
-        ) : (
-          <>
-            {/* AI Suggestions */}
-            <View style={styles.section}>
-              <Text style={[styles.sectionTitle, { color: colors.onSurface }]}>
-                Try asking me about...
-              </Text>
-              <Text style={[styles.sectionSubtitle, { color: CommonColors.gray[600] }]}>
-                I can help you find the right service provider for your needs
-              </Text>
-              
-              <View style={styles.aiSuggestionsContainer}>
-                {aiSuggestions.map((suggestion, index) => (
-                  <TouchableOpacity
-                    key={index}
-                    style={[styles.aiSuggestion, { backgroundColor: colors.surface }]}
-                    onPress={() => setSearchQuery(suggestion)}
-                    activeOpacity={0.7}
-                  >
-                    <Ionicons name="bulb-outline" size={16} color={colors.primary} />
-                    <Text style={[styles.aiSuggestionText, { color: colors.onSurface }]}>
-                      {suggestion}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
+        {/* Service Categories */}
+        <View style={styles.section}>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>Browse Categories</Text>
+          <View style={styles.categoriesGrid}>
+            {serviceCategories.map((category, index) => (
+              <ServiceCategory
+                key={index}
+                icon={category.icon}
+                title={category.title}
+                count={category.count}
+                color={category.color}
+                onPress={() => {}}
+              />
+            ))}
+          </View>
+        </View>
+
+        {/* Recent Searches */}
+        {recentSearches.length > 0 && (
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <Text style={[styles.sectionTitle, { color: colors.text }]}>Recent Searches</Text>
+              <TouchableOpacity>
+                <Text style={[styles.clearAll, { color: colors.primary }]}>Clear All</Text>
+              </TouchableOpacity>
             </View>
-
-            {/* AI Features */}
-            <View style={styles.section}>
-              <Text style={[styles.sectionTitle, { color: colors.onSurface }]}>
-                AI Assistant Features
-              </Text>
-              
-              <View style={[styles.featureCard, { backgroundColor: colors.surface }]}>
-                <View style={[styles.featureIcon, { backgroundColor: colors.primary + '20' }]}>
-                  <Ionicons name="search" size={20} color={colors.primary} />
-                </View>
-                <View style={styles.featureContent}>
-                  <Text style={[styles.featureTitle, { color: colors.onSurface }]}>
-                    Smart Service Matching
-                  </Text>
-                  <Text style={[styles.featureDescription, { color: CommonColors.gray[600] }]}>
-                    Describe your needs in natural language and get matched with the right providers
-                  </Text>
-                </View>
-              </View>
-
-              <View style={[styles.featureCard, { backgroundColor: colors.surface }]}>
-                <View style={[styles.featureIcon, { backgroundColor: colors.secondary + '20' }]}>
-                  <Ionicons name="time" size={20} color={colors.secondary} />
-                </View>
-                <View style={styles.featureContent}>
-                  <Text style={[styles.featureTitle, { color: colors.onSurface }]}>
-                    Instant Availability
-                  </Text>
-                  <Text style={[styles.featureDescription, { color: CommonColors.gray[600] }]}>
-                    Check real-time availability and get instant quotes from providers
-                  </Text>
-                </View>
-              </View>
-
-              <View style={[styles.featureCard, { backgroundColor: colors.surface }]}>
-                <View style={[styles.featureIcon, { backgroundColor: colors.success + '20' }]}>
-                  <Ionicons name="shield-checkmark" size={20} color={colors.success} />
-                </View>
-                <View style={styles.featureContent}>
-                  <Text style={[styles.featureTitle, { color: colors.onSurface }]}>
-                    Verified Recommendations
-                  </Text>
-                  <Text style={[styles.featureDescription, { color: CommonColors.gray[600] }]}>
-                    Get recommendations based on ratings, reviews, and verification status
-                  </Text>
-                </View>
-              </View>
-            </View>
-          </>
+            {recentSearches.map((search, index) => (
+              <TouchableOpacity key={index} style={styles.recentSearchItem}>
+                <Ionicons name="time-outline" size={16} color={colors.textSecondary} />
+                <Text style={[styles.recentSearchText, { color: colors.text }]}>{search}</Text>
+                <TouchableOpacity>
+                  <Ionicons name="close" size={16} color={colors.textSecondary} />
+                </TouchableOpacity>
+              </TouchableOpacity>
+            ))}
+          </View>
         )}
+
+        {/* Popular This Week */}
+        <View style={[styles.section, styles.lastSection]}>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>Popular This Week</Text>
+          <View style={[styles.popularCard, { backgroundColor: colors.surface }]}>
+            <View style={styles.popularHeader}>
+              <View style={[styles.popularIcon, { backgroundColor: colors.primary + '20' }]}>
+                <Ionicons name="trending-up" size={20} color={colors.primary} />
+              </View>
+              <View style={styles.popularInfo}>
+                <Text style={[styles.popularTitle, { color: colors.text }]}>
+                  Pool Maintenance & Cleaning
+                </Text>
+                <Text style={[styles.popularDescription, { color: colors.textSecondary }]}>
+                  High demand due to tourist season
+                </Text>
+              </View>
+              <TouchableOpacity style={[styles.exploreButton, { backgroundColor: colors.primary }]}>
+                <Text style={styles.exploreButtonText}>Explore</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
       </ScrollView>
 
-      {/* Search Button */}
-      {searchQuery.length > 0 && (
-        <View style={styles.searchButtonContainer}>
-          <TouchableOpacity 
-            style={[styles.searchButton, { backgroundColor: colors.primary }]}
-            activeOpacity={0.8}
-          >
-            <Ionicons name={isAIMode ? "chatbox" : "search"} size={20} color="white" />
-            <Text style={styles.searchButtonText}>
-              {isAIMode ? 'Ask AI Assistant' : 'Search Services'}
-            </Text>
-          </TouchableOpacity>
-        </View>
-      )}
+      {/* AI Search Modal */}
+      <Modal
+        visible={showAISearch}
+        animationType="slide"
+        presentationStyle="fullScreen"
+      >
+        <AISearchScreen 
+          location={location} 
+          onClose={() => setShowAISearch(false)} 
+        />
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -281,165 +242,171 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.md,
+    paddingTop: CaribbeanDesign.spacing.md,
+    paddingBottom: CaribbeanDesign.spacing.xl,
+    paddingHorizontal: CaribbeanDesign.spacing.lg,
+    borderBottomLeftRadius: CaribbeanDesign.borderRadius.xl,
+    borderBottomRightRadius: CaribbeanDesign.borderRadius.xl,
+  },
+  headerContent: {
+    marginBottom: CaribbeanDesign.spacing.lg,
   },
   headerTitle: {
-    ...Typography.heading3,
-    fontWeight: '600',
+    fontSize: 28,
+    fontWeight: 'bold',
+    color: 'white',
+    marginBottom: CaribbeanDesign.spacing.xs,
   },
-  aiToggle: {
-    width: 40,
-    height: 40,
-    borderRadius: BorderRadius.full,
-    alignItems: 'center',
-    justifyContent: 'center',
-    ...Shadows.sm,
+  headerSubtitle: {
+    fontSize: 16,
+    color: 'rgba(255, 255, 255, 0.9)',
   },
   searchContainer: {
+    paddingHorizontal: CaribbeanDesign.spacing.sm,
+  },
+  searchBar: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginHorizontal: Spacing.lg,
-    marginBottom: Spacing.lg,
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.md,
-    borderRadius: BorderRadius.lg,
-    gap: Spacing.md,
-    ...Shadows.sm,
+    backgroundColor: 'white',
+    borderRadius: CaribbeanDesign.borderRadius.lg,
+    paddingHorizontal: CaribbeanDesign.spacing.md,
+    paddingVertical: CaribbeanDesign.spacing.md,
+    gap: CaribbeanDesign.spacing.md,
+    ...CaribbeanDesign.shadows.sm,
   },
   searchInput: {
     flex: 1,
-    ...Typography.body1,
-    minHeight: 24,
+    fontSize: 16,
   },
-  micButton: {
-    width: 32,
-    height: 32,
-    borderRadius: BorderRadius.md,
+  aiButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     alignItems: 'center',
     justifyContent: 'center',
   },
   content: {
     flex: 1,
+    paddingTop: CaribbeanDesign.spacing.lg,
   },
   section: {
-    marginBottom: Spacing.xl,
-    paddingHorizontal: Spacing.lg,
+    marginBottom: CaribbeanDesign.spacing.xl,
+    paddingHorizontal: CaribbeanDesign.spacing.lg,
+  },
+  lastSection: {
+    marginBottom: CaribbeanDesign.spacing.xxl * 2,
   },
   sectionHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: Spacing.md,
+    marginBottom: CaribbeanDesign.spacing.md,
   },
   sectionTitle: {
-    ...Typography.heading4,
-    fontWeight: '600',
-    marginBottom: Spacing.md,
-  },
-  sectionSubtitle: {
-    ...Typography.body2,
-    marginBottom: Spacing.lg,
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginBottom: CaribbeanDesign.spacing.md,
   },
   clearAll: {
-    ...Typography.body2,
+    fontSize: 14,
     fontWeight: '600',
   },
-  categoriesGrid: {
-    gap: Spacing.sm,
+  filtersScroll: {
+    marginLeft: -CaribbeanDesign.spacing.lg,
+    paddingLeft: CaribbeanDesign.spacing.lg,
   },
-  categoryItem: {
+  filtersContainer: {
     flexDirection: 'row',
-    alignItems: 'center',
-    padding: Spacing.md,
-    borderRadius: BorderRadius.lg,
-    gap: Spacing.md,
-    ...Shadows.sm,
+    gap: CaribbeanDesign.spacing.sm,
+    paddingRight: CaribbeanDesign.spacing.lg,
   },
-  categoryIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: BorderRadius.md,
-    alignItems: 'center',
-    justifyContent: 'center',
+  filterChip: {
+    paddingHorizontal: CaribbeanDesign.spacing.md,
+    paddingVertical: CaribbeanDesign.spacing.sm,
+    borderRadius: CaribbeanDesign.borderRadius.lg,
+    borderWidth: 1,
   },
-  categoryText: {
-    ...Typography.body1,
-    flex: 1,
+  filterText: {
+    fontSize: 14,
     fontWeight: '500',
   },
-  recentItem: {
+  categoriesGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: CaribbeanDesign.spacing.md,
+    justifyContent: 'space-between',
+  },
+  categoryCard: {
+    width: '47%',
+    alignItems: 'center',
+    padding: CaribbeanDesign.spacing.lg,
+    borderRadius: CaribbeanDesign.borderRadius.lg,
+    ...CaribbeanDesign.shadows.sm,
+  },
+  categoryIcon: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: CaribbeanDesign.spacing.md,
+  },
+  categoryTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    textAlign: 'center',
+    marginBottom: CaribbeanDesign.spacing.xs,
+  },
+  categoryCount: {
+    fontSize: 12,
+    fontWeight: '500',
+  },
+  recentSearchItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: Spacing.md,
-    gap: Spacing.md,
+    paddingVertical: CaribbeanDesign.spacing.md,
+    gap: CaribbeanDesign.spacing.md,
   },
-  recentText: {
-    ...Typography.body1,
+  recentSearchText: {
     flex: 1,
+    fontSize: 16,
   },
-  removeButton: {
-    padding: Spacing.xs,
+  popularCard: {
+    borderRadius: CaribbeanDesign.borderRadius.lg,
+    padding: CaribbeanDesign.spacing.lg,
+    ...CaribbeanDesign.shadows.sm,
   },
-  aiSuggestionsContainer: {
-    gap: Spacing.md,
-  },
-  aiSuggestion: {
+  popularHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: Spacing.md,
-    borderRadius: BorderRadius.lg,
-    gap: Spacing.md,
-    ...Shadows.sm,
+    gap: CaribbeanDesign.spacing.md,
   },
-  aiSuggestionText: {
-    ...Typography.body1,
-    flex: 1,
-  },
-  featureCard: {
-    flexDirection: 'row',
-    padding: Spacing.md,
-    borderRadius: BorderRadius.lg,
-    marginBottom: Spacing.md,
-    gap: Spacing.md,
-    ...Shadows.sm,
-  },
-  featureIcon: {
+  popularIcon: {
     width: 40,
     height: 40,
-    borderRadius: BorderRadius.md,
+    borderRadius: 20,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  featureContent: {
+  popularInfo: {
     flex: 1,
-    gap: Spacing.xs,
   },
-  featureTitle: {
-    ...Typography.body1,
+  popularTitle: {
+    fontSize: 16,
     fontWeight: '600',
+    marginBottom: 4,
   },
-  featureDescription: {
-    ...Typography.body2,
+  popularDescription: {
+    fontSize: 14,
   },
-  searchButtonContainer: {
-    paddingHorizontal: Spacing.lg,
-    paddingBottom: Spacing.lg,
+  exploreButton: {
+    paddingHorizontal: CaribbeanDesign.spacing.md,
+    paddingVertical: CaribbeanDesign.spacing.sm,
+    borderRadius: CaribbeanDesign.borderRadius.md,
   },
-  searchButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: Spacing.md,
-    borderRadius: BorderRadius.lg,
-    gap: Spacing.sm,
-    ...Shadows.md,
-  },
-  searchButtonText: {
-    ...Typography.button,
+  exploreButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
     color: 'white',
   },
 });
